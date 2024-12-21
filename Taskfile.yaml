@@ -1,0 +1,31 @@
+# migrate create -ext sql -dir internal/repository/db/migrations -seq create_users_table
+version: '3'
+
+env:
+  DB_URL: 'postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable'
+
+tasks:
+  postgres:
+    desc: Build a postgres container
+    cmds:
+      - docker run --name time_keeper -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d docker.io/library/postgres:16-alpine
+
+  createdb:
+    desc: Create db time_keeper
+    cmds:
+      - docker exec -it time_keeper createdb --username=root --owner=root time_keeper
+
+  dropdb:
+    desc: Drop time_keeper db
+    cmds:
+      - docker exec -it time_keeper dropdb time_keeper
+
+  migrateup:
+    desc: Run the migrations up
+    cmds:
+      - migrate -path internal/repository/db/migrations -database $DB_URL -verbose up
+
+  migratedown:
+    desc: Run the migrations down
+    cmds:
+      - migrate -path internal/repository/db/migrations -database $DB_URL -verbose down
