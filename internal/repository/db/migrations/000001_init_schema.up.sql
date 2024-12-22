@@ -1,20 +1,20 @@
 CREATE TABLE "users" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "email" varchar,
   "role" varchar(5) NOT NULL,
   "email_validated" bool NOT NULL DEFAULT false,
-  "is_active" bool NOT NULL DEFAULT false,
-  "created_at" timestamp NOT NULL,
+  "is_active" bool NOT NULL DEFAULT true,
+  "created_at" timestamp NOT NULL DEFAULT Now(),
   "updated_at" timestamp
 );
 
 CREATE TABLE "time_entries" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "user_id" uuid NOT NULL,
   "tag" varchar NOT NULL,
   "time_start" timestamp NOT NULL,
   "time_end" timestamp,
-  "created_at" timestamp NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT Now(),
   "updated_at" timestamp
 );
 
