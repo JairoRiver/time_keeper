@@ -18,7 +18,7 @@ INSERT INTO users (
   "role"
 ) VALUES (
   $1, $2
-) RETURNING id, email, role, email_validated, is_active, created_at, updated_at
+) RETURNING id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -31,6 +31,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.UserIdentityID,
 		&i.Email,
 		&i.Role,
 		&i.EmailValidated,
@@ -42,7 +43,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, role, email_validated, is_active, created_at, updated_at FROM users
+SELECT id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -51,6 +52,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, 
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.UserIdentityID,
 		&i.Email,
 		&i.Role,
 		&i.EmailValidated,
@@ -62,7 +64,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, 
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, email, role, email_validated, is_active, created_at, updated_at FROM users
+SELECT id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -71,6 +73,28 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.UserIdentityID,
+		&i.Email,
+		&i.Role,
+		&i.EmailValidated,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByIdentityId = `-- name: GetUserByIdentityId :one
+SELECT id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at FROM users
+WHERE user_identity_id = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByIdentityId(ctx context.Context, userIdentityID pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByIdentityId, userIdentityID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.UserIdentityID,
 		&i.Email,
 		&i.Role,
 		&i.EmailValidated,
@@ -86,17 +110,19 @@ UPDATE users
 SET
   email = COALESCE($1, email),
   "role" = COALESCE($2, role),
-  email_validated = COALESCE($3, email_validated),
-  is_active = COALESCE($4, is_active),
+  user_identity_id = COALESCE($3, user_identity_id),
+  email_validated = COALESCE($4, email_validated),
+  is_active = COALESCE($5, is_active),
   updated_at = NOW()
 WHERE
-  id = $5
-RETURNING id, email, role, email_validated, is_active, created_at, updated_at
+  id = $6
+RETURNING id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at
 `
 
 type UpdateUserParams struct {
 	Email          pgtype.Text `json:"email"`
 	Role           pgtype.Text `json:"role"`
+	UserIdentityID pgtype.UUID `json:"user_identity_id"`
 	EmailValidated pgtype.Bool `json:"email_validated"`
 	IsActive       pgtype.Bool `json:"is_active"`
 	ID             uuid.UUID   `json:"id"`
@@ -106,6 +132,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	row := q.db.QueryRow(ctx, updateUser,
 		arg.Email,
 		arg.Role,
+		arg.UserIdentityID,
 		arg.EmailValidated,
 		arg.IsActive,
 		arg.ID,
@@ -113,6 +140,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.UserIdentityID,
 		&i.Email,
 		&i.Role,
 		&i.EmailValidated,

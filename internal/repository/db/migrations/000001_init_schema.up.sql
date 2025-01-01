@@ -1,5 +1,6 @@
 CREATE TABLE "users" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "user_identity_id" uuid,
   "email" varchar,
   "role" varchar(5) NOT NULL,
   "email_validated" bool NOT NULL DEFAULT false,

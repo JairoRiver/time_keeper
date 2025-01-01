@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/JairoRiver/time_keeper/internal/util"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,6 +26,7 @@ func createRandomUser(t *testing.T) User {
 	assert.False(t, user.EmailValidated)
 	assert.NotEmpty(t, user.CreatedAt)
 	assert.Empty(t, user.UpdatedAt)
+	assert.Zero(t, user.UserIdentityID)
 
 	return user
 }
@@ -49,15 +51,38 @@ func TestGetUserById(t *testing.T) {
 	assert.Equal(t, user, getUser)
 }
 
+func TestGetByIdentityId(t *testing.T) {
+	user := createRandomUser(t)
+
+	//Update and add IdentityId
+	userIdentityId := uuid.New()
+	updateParams := UpdateUserParams{
+		UserIdentityID: pgtype.UUID{Bytes: userIdentityId, Valid: true},
+		ID:             user.ID,
+	}
+	testQueries.UpdateUser(context.Background(), updateParams)
+
+	getUser, err := testQueries.GetUserByIdentityId(context.Background(), pgtype.UUID{Bytes: userIdentityId, Valid: true})
+	assert.NoError(t, err)
+	assert.Equal(t, user.ID, getUser.ID)
+	assert.Equal(t, userIdentityId.String(), getUser.UserIdentityID.String())
+	assert.Equal(t, user.Email, getUser.Email)
+	assert.Equal(t, user.Role, getUser.Role)
+	assert.False(t, getUser.EmailValidated)
+	assert.True(t, getUser.IsActive)
+}
+
 func TestUpdateUser(t *testing.T) {
 	user := createRandomUser(t)
 	newEmail := util.RandomEmail()
+	userIdentityId := uuid.New()
 	updateParams := UpdateUserParams{
 		ID:             user.ID,
 		Role:           pgtype.Text{String: util.UserAdminRole, Valid: true},
 		Email:          pgtype.Text{String: newEmail, Valid: true},
 		EmailValidated: pgtype.Bool{Bool: true, Valid: true},
 		IsActive:       pgtype.Bool{Bool: false, Valid: true},
+		UserIdentityID: pgtype.UUID{Bytes: userIdentityId, Valid: true},
 	}
 	updatedUser, err := testQueries.UpdateUser(context.Background(), updateParams)
 	assert.NoError(t, err)
@@ -66,4 +91,5 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, util.UserAdminRole, updatedUser.Role)
 	assert.True(t, updatedUser.EmailValidated)
 	assert.False(t, updatedUser.IsActive)
+	assert.Equal(t, userIdentityId.String(), updatedUser.UserIdentityID.String())
 }

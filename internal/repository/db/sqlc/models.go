@@ -21,6 +21,7 @@ type TimeEntry struct {
 
 type User struct {
 	ID             uuid.UUID        `json:"id"`
+	UserIdentityID pgtype.UUID      `json:"user_identity_id"`
 	Email          pgtype.Text      `json:"email"`
 	Role           string           `json:"role"`
 	EmailValidated bool             `json:"email_validated"`
