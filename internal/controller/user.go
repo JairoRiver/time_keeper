@@ -73,6 +73,11 @@ func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserRespon
 	if params.GetType == util.GetUserTypeId {
 		//validated if the param value are an UUID
 		if id, ok := params.Value.(uuid.UUID); ok {
+			//check if the id are empty
+			if id == uuid.Nil {
+				return UserResponse{}, fmt.Errorf("control GetUser Id type Id are empty error: %w", ErrEmptyId)
+			}
+
 			user, err := c.repo.GetUserById(ctx, id)
 			if err != nil {
 				return UserResponse{}, fmt.Errorf("control GetUser Id type repo GetUserById error: %w", err)
@@ -85,6 +90,11 @@ func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserRespon
 	} else if params.GetType == util.GetUserTypeIndetityId {
 		//validated if the param value are an UUID
 		if id, ok := params.Value.(uuid.UUID); ok {
+			//check if the IdentityId are empty
+			if id == uuid.Nil {
+				return UserResponse{}, fmt.Errorf("control GetUser IdentityId Type IdIdentityId are empty error: %w", ErrEmptyId)
+			}
+
 			user, err := c.repo.GetUserByIdentityId(ctx, pgtype.UUID{Bytes: id, Valid: true})
 			if err != nil {
 				return UserResponse{}, fmt.Errorf("control GetUser IdentityId type repo GetUserByIdentityId error: %w", err)
@@ -97,6 +107,11 @@ func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserRespon
 	} else if params.GetType == util.GetUserTypeEmail {
 		// validated if the param value are a string type
 		if email, ok := params.Value.(string); ok {
+			//check if the email are empty
+			if len(email) == 0 {
+				return UserResponse{}, fmt.Errorf("control GetUser email type email are empty error: %w", ErrEmptyEmail)
+			}
+
 			user, err := c.repo.GetUserByEmail(ctx, pgtype.Text{String: email, Valid: true})
 			if err != nil {
 				return UserResponse{}, fmt.Errorf("control GetUser email type repo GetUserByEmail error: %w", err)
