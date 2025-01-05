@@ -64,11 +64,7 @@ func (q *Queries) GetTimeEntryById(ctx context.Context, id uuid.UUID) (TimeEntry
 }
 
 const listTimeEntry = `-- name: ListTimeEntry :many
-SELECT id,
-       user_id,
-       tag,
-       time_start,
-       time_end 
+SELECT id, user_id, tag, time_start, time_end, created_at, updated_at
 FROM time_entries
 WHERE user_id = $1
   AND time_start >= $2
@@ -82,29 +78,23 @@ type ListTimeEntryParams struct {
 	TimeStart_2 pgtype.Timestamp `json:"time_start_2"`
 }
 
-type ListTimeEntryRow struct {
-	ID        uuid.UUID        `json:"id"`
-	UserID    uuid.UUID        `json:"user_id"`
-	Tag       string           `json:"tag"`
-	TimeStart pgtype.Timestamp `json:"time_start"`
-	TimeEnd   pgtype.Timestamp `json:"time_end"`
-}
-
-func (q *Queries) ListTimeEntry(ctx context.Context, arg ListTimeEntryParams) ([]ListTimeEntryRow, error) {
+func (q *Queries) ListTimeEntry(ctx context.Context, arg ListTimeEntryParams) ([]TimeEntry, error) {
 	rows, err := q.db.Query(ctx, listTimeEntry, arg.UserID, arg.TimeStart, arg.TimeStart_2)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListTimeEntryRow{}
+	items := []TimeEntry{}
 	for rows.Next() {
-		var i ListTimeEntryRow
+		var i TimeEntry
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
 			&i.Tag,
 			&i.TimeStart,
 			&i.TimeEnd,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

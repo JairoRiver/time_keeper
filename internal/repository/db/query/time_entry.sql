@@ -12,11 +12,7 @@ SELECT * FROM time_entries
 WHERE id = $1 LIMIT 1;
 
 -- name: ListTimeEntry :many
-SELECT id,
-       user_id,
-       tag,
-       time_start,
-       time_end 
+SELECT *
 FROM time_entries
 WHERE user_id = $1
   AND time_start >= $2
