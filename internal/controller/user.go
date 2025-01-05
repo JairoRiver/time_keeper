@@ -136,6 +136,11 @@ type UpdateUserParams struct {
 }
 
 func (c *Control) UpdateUser(ctx context.Context, params UpdateUserParams) (UserResponse, error) {
+	//check if the id are empty
+	if params.Id == uuid.Nil {
+		return UserResponse{}, fmt.Errorf("control UpdateUser Id are empty error: %w", ErrEmptyId)
+	}
+
 	dbUdateParam := db.UpdateUserParams{
 		ID:             params.Id,
 		EmailValidated: params.EmailValidated,

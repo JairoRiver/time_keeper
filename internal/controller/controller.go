@@ -4,18 +4,16 @@ import (
 	"errors"
 
 	db "github.com/JairoRiver/time_keeper/internal/repository/db/sqlc"
-	"github.com/JairoRiver/time_keeper/internal/util"
 )
 
 // Control defines a Entry Time service controller.
 type Control struct {
-	repo   db.Querier
-	config *util.Config
+	repo db.Querier
 }
 
 // New creates a short link service controller.
-func New(repo db.Querier, config *util.Config) *Control {
-	return &Control{repo, config}
+func New(repo db.Querier) *Control {
+	return &Control{repo}
 }
 
 var ErrInvalidRoleValue = errors.New("error invalid role value")
