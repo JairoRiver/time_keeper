@@ -95,7 +95,7 @@ func (c *Control) ListEntryTime(ctx context.Context, params ListEntryTimeParams)
 		return nil, fmt.Errorf("control ListEntryTime repo ListTimeEntry error: %w", err)
 	}
 
-	timeEntriesResponse := make([]EntryTimeResponse, len(timeEntries))
+	timeEntriesResponse := make([]EntryTimeResponse, 0, len(timeEntries))
 	for _, entryTime := range timeEntries {
 		timeEntriesResponse = append(timeEntriesResponse, formatEntryTimeResponse(entryTime))
 	}
