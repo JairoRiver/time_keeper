@@ -26,6 +26,7 @@ type User struct {
 	Role           string           `json:"role"`
 	EmailValidated bool             `json:"email_validated"`
 	IsActive       bool             `json:"is_active"`
+	SecretTokenKey string           `json:"secret_token_key"`
 	CreatedAt      pgtype.Timestamp `json:"created_at"`
 	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
 }

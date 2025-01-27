@@ -14,8 +14,9 @@ import (
 func createRandomUser(t *testing.T) User {
 	email := util.RandomEmail()
 	userParam := CreateUserParams{
-		Email: pgtype.Text{String: email, Valid: true},
-		Role:  util.UserDefauldRole,
+		Email:          pgtype.Text{String: email, Valid: true},
+		Role:           util.UserDefauldRole,
+		SecretTokenKey: util.RandomString(64),
 	}
 	user, err := testQueries.CreateUser(context.Background(), userParam)
 	assert.NoError(t, err)
@@ -24,6 +25,7 @@ func createRandomUser(t *testing.T) User {
 	assert.Equal(t, util.UserDefauldRole, user.Role)
 	assert.True(t, user.IsActive)
 	assert.False(t, user.EmailValidated)
+	assert.Equal(t, userParam.SecretTokenKey, user.SecretTokenKey)
 	assert.NotEmpty(t, user.CreatedAt)
 	assert.Empty(t, user.UpdatedAt)
 	assert.Zero(t, user.UserIdentityID)
@@ -70,12 +72,14 @@ func TestGetByIdentityId(t *testing.T) {
 	assert.Equal(t, user.Role, getUser.Role)
 	assert.False(t, getUser.EmailValidated)
 	assert.True(t, getUser.IsActive)
+	assert.Equal(t, user.SecretTokenKey, getUser.SecretTokenKey)
 }
 
 func TestUpdateUser(t *testing.T) {
 	user := createRandomUser(t)
 	newEmail := util.RandomEmail()
 	userIdentityId := uuid.New()
+	newSecret := util.RandomString(64)
 	updateParams := UpdateUserParams{
 		ID:             user.ID,
 		Role:           pgtype.Text{String: util.UserAdminRole, Valid: true},
@@ -83,6 +87,7 @@ func TestUpdateUser(t *testing.T) {
 		EmailValidated: pgtype.Bool{Bool: true, Valid: true},
 		IsActive:       pgtype.Bool{Bool: false, Valid: true},
 		UserIdentityID: pgtype.UUID{Bytes: userIdentityId, Valid: true},
+		SecretTokenKey: pgtype.Text{String: newSecret, Valid: true},
 	}
 	updatedUser, err := testQueries.UpdateUser(context.Background(), updateParams)
 	assert.NoError(t, err)
@@ -92,4 +97,14 @@ func TestUpdateUser(t *testing.T) {
 	assert.True(t, updatedUser.EmailValidated)
 	assert.False(t, updatedUser.IsActive)
 	assert.Equal(t, userIdentityId.String(), updatedUser.UserIdentityID.String())
+	assert.Equal(t, newSecret, updatedUser.SecretTokenKey)
+}
+
+func TestGetUserSecretById(t *testing.T) {
+	user := createRandomUser(t)
+
+	getUser, err := testQueries.GetUserSecretById(context.Background(), user.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, user.ID, getUser.ID)
+	assert.Equal(t, user.SecretTokenKey, getUser.SecretTokenKey)
 }

@@ -5,6 +5,7 @@ CREATE TABLE "users" (
   "role" varchar(5) NOT NULL,
   "email_validated" bool NOT NULL DEFAULT false,
   "is_active" bool NOT NULL DEFAULT true,
+  "secret_token_key" varchar(64) NOT NULL,
   "created_at" timestamp NOT NULL DEFAULT Now(),
   "updated_at" timestamp
 );

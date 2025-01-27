@@ -15,19 +15,21 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   email,
-  "role"
+  "role",
+  secret_token_key
 ) VALUES (
-  $1, $2
-) RETURNING id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at
+  $1, $2, $3
+) RETURNING id, user_identity_id, email, role, email_validated, is_active, secret_token_key, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	Email pgtype.Text `json:"email"`
-	Role  string      `json:"role"`
+	Email          pgtype.Text `json:"email"`
+	Role           string      `json:"role"`
+	SecretTokenKey string      `json:"secret_token_key"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Role)
+	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Role, arg.SecretTokenKey)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -36,6 +38,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Role,
 		&i.EmailValidated,
 		&i.IsActive,
+		&i.SecretTokenKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -43,7 +46,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at FROM users
+SELECT id, user_identity_id, email, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -57,6 +60,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, 
 		&i.Role,
 		&i.EmailValidated,
 		&i.IsActive,
+		&i.SecretTokenKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -64,7 +68,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, 
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at FROM users
+SELECT id, user_identity_id, email, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -78,6 +82,7 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Role,
 		&i.EmailValidated,
 		&i.IsActive,
+		&i.SecretTokenKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -85,7 +90,7 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByIdentityId = `-- name: GetUserByIdentityId :one
-SELECT id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at FROM users
+SELECT id, user_identity_id, email, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
 WHERE user_identity_id = $1 LIMIT 1
 `
 
@@ -99,9 +104,28 @@ func (q *Queries) GetUserByIdentityId(ctx context.Context, userIdentityID pgtype
 		&i.Role,
 		&i.EmailValidated,
 		&i.IsActive,
+		&i.SecretTokenKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
+	return i, err
+}
+
+const getUserSecretById = `-- name: GetUserSecretById :one
+SELECT id, secret_token_key 
+FROM users
+WHERE id = $1 LIMIT 1
+`
+
+type GetUserSecretByIdRow struct {
+	ID             uuid.UUID `json:"id"`
+	SecretTokenKey string    `json:"secret_token_key"`
+}
+
+func (q *Queries) GetUserSecretById(ctx context.Context, id uuid.UUID) (GetUserSecretByIdRow, error) {
+	row := q.db.QueryRow(ctx, getUserSecretById, id)
+	var i GetUserSecretByIdRow
+	err := row.Scan(&i.ID, &i.SecretTokenKey)
 	return i, err
 }
 
@@ -113,10 +137,11 @@ SET
   user_identity_id = COALESCE($3, user_identity_id),
   email_validated = COALESCE($4, email_validated),
   is_active = COALESCE($5, is_active),
+  secret_token_key = COALESCE($6, secret_token_key),
   updated_at = NOW()
 WHERE
-  id = $6
-RETURNING id, user_identity_id, email, role, email_validated, is_active, created_at, updated_at
+  id = $7
+RETURNING id, user_identity_id, email, role, email_validated, is_active, secret_token_key, created_at, updated_at
 `
 
 type UpdateUserParams struct {
@@ -125,6 +150,7 @@ type UpdateUserParams struct {
 	UserIdentityID pgtype.UUID `json:"user_identity_id"`
 	EmailValidated pgtype.Bool `json:"email_validated"`
 	IsActive       pgtype.Bool `json:"is_active"`
+	SecretTokenKey pgtype.Text `json:"secret_token_key"`
 	ID             uuid.UUID   `json:"id"`
 }
 
@@ -135,6 +161,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.UserIdentityID,
 		arg.EmailValidated,
 		arg.IsActive,
+		arg.SecretTokenKey,
 		arg.ID,
 	)
 	var i User
@@ -145,6 +172,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Role,
 		&i.EmailValidated,
 		&i.IsActive,
+		&i.SecretTokenKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

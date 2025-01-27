@@ -1,9 +1,10 @@
 -- name: CreateUser :one
 INSERT INTO users (
   email,
-  "role"
+  "role",
+  secret_token_key
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 ) RETURNING *;
 
 -- name: GetUserById :one
@@ -26,7 +27,13 @@ SET
   user_identity_id = COALESCE(sqlc.narg(user_identity_id), user_identity_id),
   email_validated = COALESCE(sqlc.narg(email_validated), email_validated),
   is_active = COALESCE(sqlc.narg(is_active), is_active),
+  secret_token_key = COALESCE(sqlc.narg(secret_token_key), secret_token_key),
   updated_at = NOW()
 WHERE
   id = sqlc.arg(id)
 RETURNING *;
+
+-- name: GetUserSecretById :one
+SELECT id, secret_token_key 
+FROM users
+WHERE id = $1 LIMIT 1;
