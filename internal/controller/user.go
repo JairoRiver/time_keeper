@@ -39,7 +39,7 @@ type CreateUserParam struct {
 
 func (c *Control) CreateUser(ctx context.Context, params CreateUserParam) (UserResponse, error) {
 	//check if role have a valid value
-	var dbUserParams db.CreateUserParams
+	dbUserParams := db.CreateUserParams{SecretTokenKey: util.RandomString(64)}
 	if params.Role == util.UserAdminRole || params.Role == util.UserDefauldRole {
 		dbUserParams.Role = params.Role
 	} else {
@@ -133,6 +133,7 @@ type UpdateUserParams struct {
 	UserIdentityID uuid.UUID
 	EmailValidated pgtype.Bool
 	IsActive       pgtype.Bool
+	SecretKey      string
 }
 
 func (c *Control) UpdateUser(ctx context.Context, params UpdateUserParams) (UserResponse, error) {
@@ -157,11 +158,32 @@ func (c *Control) UpdateUser(ctx context.Context, params UpdateUserParams) (User
 	if params.UserIdentityID != uuid.Nil {
 		dbUdateParam.UserIdentityID = pgtype.UUID{Bytes: params.UserIdentityID, Valid: true}
 	}
+	if len(params.SecretKey) > 0 {
+		dbUdateParam.SecretTokenKey = pgtype.Text{String: params.SecretKey, Valid: true}
+	}
 
 	user, err := c.repo.UpdateUser(ctx, dbUdateParam)
 	if err != nil {
 		return UserResponse{}, fmt.Errorf("control UpdateUser repo UpdateUser error: %w", err)
 	}
 	userResponse := formatUserResponse(user)
+	return userResponse, nil
+}
+
+type UserKeyResponse struct {
+	UserId    uuid.UUID
+	SecretKey string
+}
+
+func (c *Control) GetUserSecretKey(ctx context.Context, userId uuid.UUID) (UserKeyResponse, error) {
+	if userId == uuid.Nil {
+		return UserKeyResponse{}, fmt.Errorf("control GetUserSecretKey userId are empty error: %w", ErrEmptyId)
+	}
+
+	user, err := c.repo.GetUserSecretById(ctx, userId)
+	if err != nil {
+		return UserKeyResponse{}, fmt.Errorf("control GetUserSecretKey GetUserSecretById error: %w", err)
+	}
+	userResponse := UserKeyResponse{UserId: user.ID, SecretKey: user.SecretTokenKey}
 	return userResponse, nil
 }

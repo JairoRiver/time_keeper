@@ -142,9 +142,11 @@ func TestUpdateUser(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, errors.Is(err, ErrEmptyId))
 
+	//update valid inputs
 	newEmail := util.RandomEmail()
 	newRole := util.UserAdminRole
 	newIdentityId := uuid.New()
+	newSecretKey := util.RandomString(64)
 
 	updateParams := UpdateUserParams{
 		Id:             user.UserId,
@@ -153,6 +155,7 @@ func TestUpdateUser(t *testing.T) {
 		UserIdentityID: newIdentityId,
 		EmailValidated: pgtype.Bool{Bool: true, Valid: true},
 		IsActive:       pgtype.Bool{Bool: false, Valid: true},
+		SecretKey:      newSecretKey,
 	}
 	updatedUser, err := testControl.UpdateUser(context.Background(), updateParams)
 	assert.NoError(t, err)
@@ -163,4 +166,28 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, newIdentityId, updatedUser.UserIdentityID)
 	assert.True(t, updatedUser.EmailValidated)
 	assert.False(t, updatedUser.IsActive)
+
+	//check secret updated
+	checkSecret, err := testControl.GetUserSecretKey(context.Background(), user.UserId)
+	assert.NoError(t, err)
+	assert.NotZero(t, checkSecret)
+	assert.Equal(t, user.UserId, checkSecret.UserId)
+	assert.Equal(t, newSecretKey, checkSecret.SecretKey)
+}
+
+func TestGetUserSecretKey(t *testing.T) {
+	user := createRandomUser(t, "")
+
+	//check id zero UUID
+	userZeroId, err := testControl.GetUserSecretKey(context.Background(), uuid.Nil)
+	assert.Zero(t, userZeroId)
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrEmptyId))
+
+	//check valid id
+	userSecret, err := testControl.GetUserSecretKey(context.Background(), user.UserId)
+	assert.NoError(t, err)
+	assert.NotNil(t, userSecret)
+	assert.Equal(t, user.UserId, userSecret.UserId)
+	assert.NotZero(t, userSecret.SecretKey)
 }
