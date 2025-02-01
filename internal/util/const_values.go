@@ -6,4 +6,5 @@ const (
 	GetUserTypeEmail      = "email"
 	GetUserTypeId         = "id"
 	GetUserTypeIndetityId = "identityId"
+	RefreshTokenName      = "refresh_token"
 )

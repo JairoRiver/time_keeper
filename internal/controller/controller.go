@@ -31,6 +31,7 @@ type Controller interface {
 	GetEntryTime(ctx context.Context, id uuid.UUID) (EntryTimeResponse, error)
 	GetEntryTimeOwner(ctx context.Context, entryTimeId uuid.UUID) (EntryTimeOwnerResponse, error)
 	GetUser(ctx context.Context, params GetUserParams) (UserResponse, error)
+	GetUserSecretKey(ctx context.Context, userId uuid.UUID) (UserKeyResponse, error)
 	ListEntryTime(ctx context.Context, params ListEntryTimeParams) ([]EntryTimeResponse, error)
 	UpdateEntryTime(ctx context.Context, params UpdateEntryTimeParams) (EntryTimeResponse, error)
 	UpdateUser(ctx context.Context, params UpdateUserParams) (UserResponse, error)

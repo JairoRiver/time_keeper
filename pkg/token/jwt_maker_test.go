@@ -6,6 +6,7 @@ import (
 
 	"github.com/JairoRiver/time_keeper/internal/util"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,14 +14,14 @@ func TestJWTMaker(t *testing.T) {
 	maker, err := NewJWTMaker(util.RandomString(64))
 	assert.NoError(t, err)
 
-	email := util.RandomEmail()
+	userId := uuid.New()
 	role := util.UserDefauldRole
 	duration := time.Minute
 
 	issuedAt := time.Now()
 	expiredAt := issuedAt.Add(duration)
 
-	token, payload, err := maker.CreateToken(email, role, duration)
+	token, payload, err := maker.CreateToken(userId, role, duration)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 	assert.NotEmpty(t, payload)
@@ -30,7 +31,7 @@ func TestJWTMaker(t *testing.T) {
 	assert.NotEmpty(t, token)
 
 	assert.NotZero(t, payload.ID)
-	assert.Equal(t, email, payload.Email)
+	assert.Equal(t, userId, payload.UserId)
 	assert.Equal(t, role, payload.Role)
 	assert.WithinDuration(t, issuedAt, payload.IssuedAt, time.Second)
 	assert.WithinDuration(t, expiredAt, payload.ExpiredAt, time.Second)
@@ -40,7 +41,7 @@ func TestExpiredJWTToken(t *testing.T) {
 	maker, err := NewJWTMaker(util.RandomString(64))
 	assert.NoError(t, err)
 
-	token, payload, err := maker.CreateToken(util.RandomEmail(), util.UserDefauldRole, -time.Minute)
+	token, payload, err := maker.CreateToken(uuid.New(), util.UserDefauldRole, -time.Minute)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 	assert.NotEmpty(t, payload)
@@ -52,7 +53,7 @@ func TestExpiredJWTToken(t *testing.T) {
 }
 
 func TestInvalidJWTTokenAlgNone(t *testing.T) {
-	payload, err := NewPayload(util.RandomEmail(), util.UserDefauldRole, time.Minute)
+	payload, err := NewPayload(uuid.New(), util.UserDefauldRole, time.Minute)
 	assert.NoError(t, err)
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)
