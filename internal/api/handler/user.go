@@ -60,9 +60,12 @@ func (h *Handler) CreateUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	cookie := http.Cookie{
-		Name:    util.RefreshTokenName,
-		Value:   refreshToken,
-		Expires: time.Now().UTC().Add(refreshTokenDuration),
+		Name:     util.RefreshTokenName,
+		Value:    refreshToken,
+		Expires:  time.Now().UTC().Add(refreshTokenDuration),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	}
 	c.SetCookie(&cookie)
 
