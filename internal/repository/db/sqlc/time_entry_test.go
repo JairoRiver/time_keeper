@@ -77,3 +77,17 @@ func TestListTimeEntry(t *testing.T) {
 		assert.Zero(t, entryTime.TimeEnd)
 	}
 }
+
+func TestDeleteTimeEntry(t *testing.T) {
+	entryTime := createRandomTimeEntry(t, pgtype.UUID{})
+	deletedEntryTime, err := testQueries.DeleteTimeEntry(context.Background(), entryTime.ID)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, deletedEntryTime)
+	assert.Equal(t, entryTime.ID, deletedEntryTime.ID)
+	assert.Equal(t, entryTime.UserID, deletedEntryTime.UserID)
+	assert.Equal(t, entryTime.TimeStart, deletedEntryTime.TimeStart)
+	assert.Equal(t, entryTime.TimeEnd, deletedEntryTime.TimeEnd)
+	assert.Equal(t, entryTime.Tag, deletedEntryTime.Tag)
+	assert.Equal(t, entryTime.CreatedAt, deletedEntryTime.CreatedAt)
+	assert.Equal(t, entryTime.UpdatedAt, deletedEntryTime.UpdatedAt)
+}

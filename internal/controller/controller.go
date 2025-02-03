@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"errors"
+	"time"
 
 	db "github.com/JairoRiver/time_keeper/internal/repository/db/sqlc"
 	"github.com/google/uuid"
@@ -28,6 +29,7 @@ var ErrEmptyEmail = errors.New("error email are empty")
 type Controller interface {
 	CreateEntryTime(ctx context.Context, params CreateEntryTimeParams) (EntryTimeResponse, error)
 	CreateUser(ctx context.Context, params CreateUserParam) (UserResponse, error)
+	DeleteEntryTime(ctx context.Context, id uuid.UUID) (EntryTimeResponse, error)
 	GetEntryTime(ctx context.Context, id uuid.UUID) (EntryTimeResponse, error)
 	GetEntryTimeOwner(ctx context.Context, entryTimeId uuid.UUID) (EntryTimeOwnerResponse, error)
 	GetUser(ctx context.Context, params GetUserParams) (UserResponse, error)
@@ -38,3 +40,18 @@ type Controller interface {
 }
 
 var _ Controller = (*Control)(nil)
+
+func getWeekRange(weekOffset int) (time.Time, time.Time) {
+	today := time.Now()
+	weekDay := int(today.Weekday())
+	if weekDay == 0 {
+		weekDay = 7 //Sunday day is 7 not zero
+	}
+
+	offsetDays := (weekOffset - 1) * 7
+	// First day of the week (monday)
+	startOfWeek := today.AddDate(0, 0, 1-weekDay-offsetDays)
+	// Last day of the week (Sunday)
+	endOfWeek := startOfWeek.AddDate(0, 0, 6)
+	return startOfWeek, endOfWeek
+}

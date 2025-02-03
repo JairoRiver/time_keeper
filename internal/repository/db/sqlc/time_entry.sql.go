@@ -43,6 +43,27 @@ func (q *Queries) CreateTimeEntry(ctx context.Context, arg CreateTimeEntryParams
 	return i, err
 }
 
+const deleteTimeEntry = `-- name: DeleteTimeEntry :one
+DELETE FROM time_entries 
+WHERE id = $1
+RETURNING id, user_id, tag, time_start, time_end, created_at, updated_at
+`
+
+func (q *Queries) DeleteTimeEntry(ctx context.Context, id uuid.UUID) (TimeEntry, error) {
+	row := q.db.QueryRow(ctx, deleteTimeEntry, id)
+	var i TimeEntry
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Tag,
+		&i.TimeStart,
+		&i.TimeEnd,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getTimeEntryById = `-- name: GetTimeEntryById :one
 SELECT id, user_id, tag, time_start, time_end, created_at, updated_at FROM time_entries
 WHERE id = $1 LIMIT 1
@@ -68,7 +89,7 @@ SELECT id, user_id, tag, time_start, time_end, created_at, updated_at
 FROM time_entries
 WHERE user_id = $1
   AND time_start >= $2
-  AND time_start < $3
+  AND time_start <= $3
 ORDER BY DATE_TRUNC('day',time_start) DESC, tag ASC
 `
 

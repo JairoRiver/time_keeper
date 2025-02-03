@@ -73,10 +73,10 @@ func (c *Control) GetEntryTime(ctx context.Context, id uuid.UUID) (EntryTimeResp
 }
 
 // list entry time control method
+// Page 1 have the current week days, page 2 have the las week days etc
 type ListEntryTimeParams struct {
-	UserId    uuid.UUID
-	DateStart time.Time
-	DateEnd   time.Time
+	UserId     uuid.UUID
+	PageNumber int
 }
 
 func (c *Control) ListEntryTime(ctx context.Context, params ListEntryTimeParams) ([]EntryTimeResponse, error) {
@@ -85,10 +85,19 @@ func (c *Control) ListEntryTime(ctx context.Context, params ListEntryTimeParams)
 		return nil, fmt.Errorf("control ListEntryTime UserId are empty, error: %w", ErrEmptyId)
 	}
 
+	//check the page number if the page number is 0 change to 1 the defauld value
+	var pageNumber int
+	if params.PageNumber == 0 {
+		pageNumber = 1
+	} else {
+		pageNumber = params.PageNumber
+	}
+	dateStart, dateEnd := getWeekRange(pageNumber)
+
 	listParams := db.ListTimeEntryParams{
 		UserID:      params.UserId,
-		TimeStart:   pgtype.Timestamp{Time: params.DateStart, Valid: true},
-		TimeStart_2: pgtype.Timestamp{Time: params.DateEnd, Valid: true},
+		TimeStart:   pgtype.Timestamp{Time: dateStart, Valid: true},
+		TimeStart_2: pgtype.Timestamp{Time: dateEnd, Valid: true},
 	}
 	timeEntries, err := c.repo.ListTimeEntry(ctx, listParams)
 	if err != nil {
@@ -168,5 +177,16 @@ func (c *Control) GetEntryTimeOwner(ctx context.Context, entryTimeId uuid.UUID) 
 	}
 
 	entryTimeOwnerResponse := EntryTimeOwnerResponse{EntryTimeId: entryTime.ID, EntryTimeUserId: entryTime.UserID}
+	return entryTimeOwnerResponse, nil
+}
+
+// delete entry time method
+func (c *Control) DeleteEntryTime(ctx context.Context, id uuid.UUID) (EntryTimeResponse, error) {
+	entryTime, err := c.repo.DeleteTimeEntry(ctx, id)
+	if err != nil {
+		return EntryTimeResponse{}, fmt.Errorf("control DeleteEntryTime repo DeleteTimeEntry error: %w", err)
+	}
+
+	entryTimeOwnerResponse := formatEntryTimeResponse(entryTime)
 	return entryTimeOwnerResponse, nil
 }

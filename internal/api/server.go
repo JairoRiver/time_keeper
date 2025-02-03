@@ -5,7 +5,6 @@ import (
 
 	"github.com/JairoRiver/time_keeper/internal/api/handler"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 )
 
@@ -13,27 +12,20 @@ import (
 type Server struct {
 	handler *handler.Handler
 	logger  *zerolog.Logger
+	router  *echo.Echo
 }
 
 func New(handler *handler.Handler, logger *zerolog.Logger) *Server {
-	return &Server{handler, logger}
+	server := Server{
+		handler: handler,
+		logger:  logger,
+	}
+	server.setupRouter()
+	return &server
 }
 
 func (server *Server) Start(address string) error {
-	e := echo.New()
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogURI:    true,
-		LogStatus: true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			server.logger.Info().
-				Str("URI", v.URI).
-				Int("status", v.Status).
-				Msg("request")
-			return nil
-		},
-	}))
-
-	if err := e.Start(address); err != http.ErrServerClosed {
+	if err := server.router.Start(address); err != http.ErrServerClosed {
 		return err
 	}
 	return nil

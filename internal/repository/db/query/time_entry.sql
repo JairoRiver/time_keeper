@@ -16,7 +16,7 @@ SELECT *
 FROM time_entries
 WHERE user_id = $1
   AND time_start >= $2
-  AND time_start < $3
+  AND time_start <= $3
 ORDER BY DATE_TRUNC('day',time_start) DESC, tag ASC;
 
 -- name: UpdateTimeEntry :one
@@ -28,4 +28,9 @@ SET
   updated_at = NOW()
 WHERE
   id = sqlc.arg(id)
+RETURNING *;
+
+-- name: DeleteTimeEntry :one
+DELETE FROM time_entries 
+WHERE id = $1
 RETURNING *;

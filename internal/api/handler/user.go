@@ -72,3 +72,7 @@ func (h *Handler) CreateUser(c echo.Context) error {
 	response := parseUserResponse(user, accessToken, payload.ExpiredAt)
 	return c.JSON(http.StatusCreated, response)
 }
+
+//TODO: update
+//TODO: login
+//TODO: Logout

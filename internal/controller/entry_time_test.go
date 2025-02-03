@@ -80,9 +80,8 @@ func TestListEntryTime(t *testing.T) {
 		createRandomEntryTime(t, user.UserId)
 	}
 	entriesTimeParams := ListEntryTimeParams{
-		UserId:    user.UserId,
-		DateStart: time.Now().UTC().Add(-1 * time.Minute),
-		DateEnd:   time.Now().UTC().Add(time.Minute),
+		UserId:     user.UserId,
+		PageNumber: 1,
 	}
 	listEntriesTime, err := testControl.ListEntryTime(context.Background(), entriesTimeParams)
 	assert.NoError(t, err)
@@ -135,4 +134,17 @@ func TestGetEntryTimeOwner(t *testing.T) {
 	assert.NotZero(t, getOwner)
 	assert.Equal(t, entryTime.ID, getOwner.EntryTimeId)
 	assert.Equal(t, user.UserId, getOwner.EntryTimeUserId)
+}
+
+func TestDeleteEntryTime(t *testing.T) {
+	user := createRandomUser(t, "")
+	entryTime := createRandomEntryTime(t, user.UserId)
+	deleteEntryTime, err := testControl.DeleteEntryTime(context.Background(), entryTime.ID)
+	assert.NoError(t, err)
+	assert.NotZero(t, deleteEntryTime)
+	assert.Equal(t, entryTime.ID, deleteEntryTime.ID)
+	assert.Equal(t, entryTime.UserID, deleteEntryTime.UserID)
+	assert.Equal(t, entryTime.Tag, deleteEntryTime.Tag)
+	assert.Equal(t, entryTime.TimeStart, deleteEntryTime.TimeStart)
+	assert.Equal(t, entryTime.TimeEnd, deleteEntryTime.TimeEnd)
 }

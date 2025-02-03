@@ -14,6 +14,7 @@ import (
 type Querier interface {
 	CreateTimeEntry(ctx context.Context, arg CreateTimeEntryParams) (TimeEntry, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteTimeEntry(ctx context.Context, id uuid.UUID) (TimeEntry, error)
 	GetTimeEntryById(ctx context.Context, id uuid.UUID) (TimeEntry, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (User, error)
