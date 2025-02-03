@@ -1,9 +1,12 @@
 package util
 
-import "github.com/joho/godotenv"
+import (
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
-	DBSOURCE string
+	DBSOURCE      string
+	ServerAddress string
 }
 
 func LoadConfig(filePath string) (Config, error) {
@@ -16,5 +19,6 @@ func LoadConfig(filePath string) (Config, error) {
 	}
 
 	config.DBSOURCE = myEnv["DB_SOURCE"]
+	config.ServerAddress = myEnv["SERVER_ADDRESS"]
 	return config, nil
 }

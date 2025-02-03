@@ -43,3 +43,13 @@ tasks:
     desc: run the test
     cmds:
       - go test -v -cover ./...
+
+  server:
+    desc: init the server
+    cmds:
+      - go run ./main.go
+
+  api_doc:
+    desc: generate swagger documentation
+    cmds:
+      - swag init -g ./main.go
