@@ -14,7 +14,8 @@ import (
 type CreateEntryTimeParams struct {
 	UserId    uuid.UUID `json:"user_id" binding:"required"`
 	Tag       string    `json:"tag"`
-	TimeStart time.Time `json:"time_start"`
+	TimeStart time.Time `json:"time_start" binding:"required"`
+	TimeEnd   time.Time `json:"time_end"`
 }
 type EntryTimeResponse struct {
 	Id        uuid.UUID
@@ -43,6 +44,7 @@ func (h *Handler) CreateEntryTime(c echo.Context) error {
 		UserID:    entryTimeParams.UserId,
 		Tag:       entryTimeParams.Tag,
 		TimeStart: entryTimeParams.TimeStart,
+		TimeEnd:   entryTimeParams.TimeEnd,
 	}
 	ctx := context.Background()
 	entryTime, err := h.ctrl.CreateEntryTime(ctx, entryTimeControllerParams)

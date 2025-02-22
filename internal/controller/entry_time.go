@@ -34,6 +34,7 @@ type CreateEntryTimeParams struct {
 	UserID    uuid.UUID
 	Tag       string
 	TimeStart time.Time
+	TimeEnd   time.Time
 }
 
 func (c *Control) CreateEntryTime(ctx context.Context, params CreateEntryTimeParams) (EntryTimeResponse, error) {
@@ -42,10 +43,17 @@ func (c *Control) CreateEntryTime(ctx context.Context, params CreateEntryTimePar
 		return EntryTimeResponse{}, fmt.Errorf("control CreateEntryTime UserId are empty, error: %w", ErrEmptyId)
 	}
 
+	//check if TimeEnd is are a zero value
+	var timeEnd pgtype.Timestamp
+	if !params.TimeEnd.IsZero() {
+		timeEnd = pgtype.Timestamp{Time: params.TimeEnd, Valid: true}
+	}
+
 	entryTimeParam := db.CreateTimeEntryParams{
 		UserID:    params.UserID,
 		Tag:       params.Tag,
 		TimeStart: pgtype.Timestamp{Time: params.TimeStart, Valid: true},
+		TimeEnd:   timeEnd,
 	}
 	entryTime, err := c.repo.CreateTimeEntry(ctx, entryTimeParam)
 	if err != nil {

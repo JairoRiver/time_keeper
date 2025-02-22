@@ -2,9 +2,10 @@
 INSERT INTO time_entries (
   user_id,
   tag,
-  time_start
+  time_start,
+  time_end
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 ) RETURNING *;
 
 -- name: GetTimeEntryById :one

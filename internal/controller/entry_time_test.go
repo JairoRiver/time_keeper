@@ -22,6 +22,7 @@ func createRandomEntryTime(t *testing.T, userId uuid.UUID) EntryTimeResponse {
 	assert.True(t, errors.Is(err, ErrEmptyId))
 	assert.Zero(t, errorEntryTime)
 
+	//Create entry time with not time end
 	createEntryTimeParams := CreateEntryTimeParams{
 		UserID:    userId,
 		Tag:       util.RandomString(5),
@@ -36,6 +37,24 @@ func createRandomEntryTime(t *testing.T, userId uuid.UUID) EntryTimeResponse {
 	assert.Equal(t, createEntryTimeParams.Tag, entryTime.Tag)
 	assert.Equal(t, createEntryTimeParams.TimeStart.Round(time.Second), entryTime.TimeStart.Round(time.Second))
 	assert.True(t, entryTime.TimeEnd.IsZero())
+
+	//Check create entry time with time end
+	user := createRandomUser(t, "")
+	createEntryTimeParams2 := CreateEntryTimeParams{
+		UserID:    user.UserId,
+		Tag:       util.RandomString(5),
+		TimeStart: time.Now().UTC(),
+		TimeEnd:   time.Now().UTC().Add(time.Minute),
+	}
+
+	entryTime2, err := testControl.CreateEntryTime(context.Background(), createEntryTimeParams2)
+	assert.NoError(t, err)
+	assert.NotZero(t, entryTime2)
+	assert.NotZero(t, entryTime2.ID)
+	assert.Equal(t, user.UserId, entryTime2.UserID)
+	assert.Equal(t, createEntryTimeParams2.Tag, entryTime2.Tag)
+	assert.Equal(t, createEntryTimeParams2.TimeStart.Round(time.Second), entryTime2.TimeStart.Round(time.Second))
+	assert.False(t, entryTime2.TimeEnd.IsZero())
 
 	return entryTime
 }

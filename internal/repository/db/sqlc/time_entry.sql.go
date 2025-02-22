@@ -16,9 +16,10 @@ const createTimeEntry = `-- name: CreateTimeEntry :one
 INSERT INTO time_entries (
   user_id,
   tag,
-  time_start
+  time_start,
+  time_end
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 ) RETURNING id, user_id, tag, time_start, time_end, created_at, updated_at
 `
 
@@ -26,10 +27,16 @@ type CreateTimeEntryParams struct {
 	UserID    uuid.UUID        `json:"user_id"`
 	Tag       string           `json:"tag"`
 	TimeStart pgtype.Timestamp `json:"time_start"`
+	TimeEnd   pgtype.Timestamp `json:"time_end"`
 }
 
 func (q *Queries) CreateTimeEntry(ctx context.Context, arg CreateTimeEntryParams) (TimeEntry, error) {
-	row := q.db.QueryRow(ctx, createTimeEntry, arg.UserID, arg.Tag, arg.TimeStart)
+	row := q.db.QueryRow(ctx, createTimeEntry,
+		arg.UserID,
+		arg.Tag,
+		arg.TimeStart,
+		arg.TimeEnd,
+	)
 	var i TimeEntry
 	err := row.Scan(
 		&i.ID,
