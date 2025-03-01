@@ -1,4 +1,165 @@
+definitions:
+  handler.CreateEntryTimeParams:
+    properties:
+      tag:
+        type: string
+      time_end:
+        type: string
+      time_start:
+        type: string
+      user_id:
+        type: string
+    required:
+    - time_start
+    - user_id
+    type: object
+  handler.EntryTimeResponse:
+    properties:
+      id:
+        type: string
+      tag:
+        type: string
+      timeEnd:
+        type: string
+      timeStart:
+        type: string
+    type: object
+  handler.ResponseUser:
+    properties:
+      accessToken:
+        type: string
+      email:
+        type: string
+      expiredAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  handler.UpdateEntryTimeParams:
+    properties:
+      id:
+        type: string
+      tag:
+        type: string
+      time_end:
+        type: string
+      time_start:
+        type: string
+    required:
+    - id
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /api/v1/entries-time:
+    get:
+      description: Retrieve a paginated list of entry times for a user
+      operationId: get-list-entry-time
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      - description: Page number (must be >= 1)
+        in: query
+        name: page_number
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.EntryTimeResponse'
+            type: array
+      summary: List entry times
+  /api/v1/entry-time:
+    post:
+      consumes:
+      - application/json
+      description: Create a new time entry for a user
+      operationId: post-create-entry-time
+      parameters:
+      - description: Entry Time Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateEntryTimeParams'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.EntryTimeResponse'
+      summary: Create an entry time
+    put:
+      consumes:
+      - application/json
+      description: Update an existing entry time by its ID
+      operationId: put-update-entry-time
+      parameters:
+      - description: Entry Time Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateEntryTimeParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EntryTimeResponse'
+      summary: Update an entry time
+  /api/v1/entry-time/{id}:
+    delete:
+      description: Delete an entry time by its ID
+      operationId: delete-entry-time
+      parameters:
+      - description: Entry Time ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: No Content
+      summary: Delete an entry time
+    get:
+      description: Retrieve an entry time by its ID
+      operationId: get-entry-time
+      parameters:
+      - description: Entry Time ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EntryTimeResponse'
+      summary: Get an entry time
+  /api/v1/user:
+    post:
+      description: generate a new user
+      operationId: post-create-user
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ResponseUser'
+      summary: Create a new user
 swagger: "2.0"

@@ -1,6 +1,7 @@
 package api
 
 import (
+	_ "github.com/JairoRiver/time_keeper/docs"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -31,7 +32,7 @@ func (server *Server) setupRouter() {
 	// @in header
 	// @name token// @license.name Apache 2.0
 	// @license.url http://www.apache.org/licenses/LICENSE-2.0.html// @host localhost:8081
-	// @BasePath /v1// @schemes http
+	// @BasePath /api/v1/ @schemes http
 	// Swagger documentation
 	router.GET("/swagger/*", echoSwagger.WrapHandler)
 

@@ -30,6 +30,12 @@ func parseUserResponse(user controller.UserResponse, token string, expiredAt tim
 	return response
 }
 
+// @Summary Create a new user
+// @Description generate a new user
+// @ID post-create-user
+// @Produce  json
+// @Success 201 {object} ResponseUser
+// @Router /api/v1/user [post]
 func (h *Handler) CreateUser(c echo.Context) error {
 	params := controller.CreateUserParam{Role: util.UserDefauldRole}
 	ctx := context.Background()

@@ -33,6 +33,14 @@ func parseEntryTimeResponse(entryTime controller.EntryTimeResponse) EntryTimeRes
 	}
 }
 
+// @Summary Create an entry time
+// @Description Create a new time entry for a user
+// @ID post-create-entry-time
+// @Accept  json
+// @Produce  json
+// @Param request body CreateEntryTimeParams true "Entry Time Data"
+// @Success 201 {object} EntryTimeResponse
+// @Router /api/v1/entry-time [post]
 func (h *Handler) CreateEntryTime(c echo.Context) error {
 	var entryTimeParams CreateEntryTimeParams
 	err := c.Bind(&entryTimeParams)
@@ -61,6 +69,13 @@ type GetEntryTimeParam struct {
 	Id uuid.UUID `param:"id" binding:"required"`
 }
 
+// @Summary Get an entry time
+// @Description Retrieve an entry time by its ID
+// @ID get-entry-time
+// @Produce json
+// @Param id path string true "Entry Time ID"
+// @Success 200 {object} EntryTimeResponse
+// @Router /api/v1/entry-time/{id} [get]
 func (h *Handler) GetEntryTime(c echo.Context) error {
 	var entryTimeParams GetEntryTimeParam
 	err := c.Bind(&entryTimeParams)
@@ -74,7 +89,7 @@ func (h *Handler) GetEntryTime(c echo.Context) error {
 	}
 
 	response := parseEntryTimeResponse(entryTime)
-	return c.JSON(http.StatusCreated, response)
+	return c.JSON(http.StatusOK, response)
 }
 
 // list entry Time
@@ -83,6 +98,14 @@ type ListEntryTimeParams struct {
 	PageNumber int       `query:"page_number" binding:"required,gte=1"`
 }
 
+// @Summary List entry times
+// @Description Retrieve a paginated list of entry times for a user
+// @ID get-list-entry-time
+// @Produce json
+// @Param user_id query string true "User ID"
+// @Param page_number query int true "Page number (must be >= 1)"
+// @Success 200 {array} EntryTimeResponse
+// @Router /api/v1/entries-time [get]
 func (h *Handler) ListEntryTime(c echo.Context) error {
 	var listEntryTimeParams ListEntryTimeParams
 	err := c.Bind(&listEntryTimeParams)
@@ -116,6 +139,14 @@ type UpdateEntryTimeParams struct {
 	TimeEnd   time.Time `json:"time_end"`
 }
 
+// @Summary Update an entry time
+// @Description Update an existing entry time by its ID
+// @ID put-update-entry-time
+// @Accept json
+// @Produce json
+// @Param request body UpdateEntryTimeParams true "Entry Time Data"
+// @Success 200 {object} EntryTimeResponse
+// @Router /api/v1/entry-time [put]
 func (h *Handler) UpdateEntryTime(c echo.Context) error {
 	var updateEntryTimeParams UpdateEntryTimeParams
 	err := c.Bind(&updateEntryTimeParams)
@@ -144,6 +175,13 @@ type DeleteEntryTimeParams struct {
 	Id uuid.UUID `param:"id" binding:"required"`
 }
 
+// @Summary Delete an entry time
+// @Description Delete an entry time by its ID
+// @ID delete-entry-time
+// @Produce json
+// @Param id path string true "Entry Time ID"
+// @Success 202 "No Content"
+// @Router /api/v1/entry-time/{id} [delete]
 func (h *Handler) DeleteEntryTime(c echo.Context) error {
 	var deleteEntryTimeParams DeleteEntryTimeParams
 	err := c.Bind(&deleteEntryTimeParams)
@@ -157,5 +195,5 @@ func (h *Handler) DeleteEntryTime(c echo.Context) error {
 	}
 
 	response := parseEntryTimeResponse(entryTime)
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusAccepted, response)
 }
