@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/JairoRiver/time_keeper/internal/util"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,8 +33,8 @@ func TestJWTMaker(t *testing.T) {
 	assert.NotZero(t, payload.ID)
 	assert.Equal(t, userId, payload.UserId)
 	assert.Equal(t, role, payload.Role)
-	assert.WithinDuration(t, issuedAt, payload.IssuedAt, time.Second)
-	assert.WithinDuration(t, expiredAt, payload.ExpiredAt, time.Second)
+	assert.WithinDuration(t, issuedAt, payload.IssuedAt.Time.Local(), time.Second)
+	assert.WithinDuration(t, expiredAt, payload.ExpiresAt.Time.Local(), time.Second)
 }
 
 func TestExpiredJWTToken(t *testing.T) {
@@ -63,8 +63,8 @@ func TestInvalidJWTTokenAlgNone(t *testing.T) {
 	maker, err := NewJWTMaker(util.RandomString(64))
 	assert.NoError(t, err)
 
-	payload, err = maker.VerifyToken(token)
+	payload2, err := maker.VerifyToken(token)
 	assert.Error(t, err)
 	assert.EqualError(t, err, ErrInvalidToken.Error())
-	assert.Nil(t, payload)
+	assert.Nil(t, payload2)
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -15,33 +16,34 @@ var (
 
 // Payload contains the payload data of the token
 type Payload struct {
-	ID        uuid.UUID `json:"id"`
-	UserId    uuid.UUID `json:"user_id"`
-	Role      string    `json:"role"`
-	IssuedAt  time.Time `json:"issued_at"`
-	ExpiredAt time.Time `json:"expired_at"`
+	UserId uuid.UUID `json:"user_id"`
+	Role   string    `json:"role"`
+	jwt.RegisteredClaims
 }
 
 // NewPayload creates a new token payload with a specific username and duration
-func NewPayload(userId uuid.UUID, role string, duration time.Duration) (*Payload, error) {
+func NewPayload(userId uuid.UUID, role string, duration time.Duration) (Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
-		return nil, err
+		return Payload{}, err
 	}
 
-	payload := &Payload{
-		ID:        tokenID,
-		UserId:    userId,
-		Role:      role,
-		IssuedAt:  time.Now(),
-		ExpiredAt: time.Now().Add(duration),
+	payload := Payload{
+		userId,
+		role,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			ID:        tokenID.String(),
+		},
 	}
 	return payload, nil
 }
 
 // Valid checks if the token payload is valid or not
 func (payload *Payload) Valid() error {
-	if time.Now().After(payload.ExpiredAt) {
+	if time.Now().After(payload.ExpiresAt.Local()) {
 		return ErrExpiredToken
 	}
 	return nil

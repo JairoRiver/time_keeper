@@ -75,7 +75,7 @@ func (h *Handler) CreateUser(c echo.Context) error {
 	}
 	c.SetCookie(&cookie)
 
-	response := parseUserResponse(user, accessToken, payload.ExpiredAt)
+	response := parseUserResponse(user, accessToken, payload.ExpiresAt.Time.UTC())
 	return c.JSON(http.StatusCreated, response)
 }
 
