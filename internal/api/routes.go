@@ -21,30 +21,41 @@ func (server *Server) setupRouter() {
 			return nil
 		},
 	}))
-	router := e.Group("api/v1")
+	public := e.Group("api/v1")
+	private := public.Group("")
+	private.Use(server.handler.AuthMiddleware)
 
 	// @title Short Link API
 	// @version 1.0
 	// @description Testing Swagger APIs.
-	// @termsOfService http://swagger.io/terms/// @contact.name API Support
+	// @termsOfService http://swagger.io/terms/
+
+	// @contact.name API Support
 	// @contact.url http://www.swagger.io/support
-	// @contact.email support@swagger.io// @securityDefinitions.apiKey JWT
+	// @contact.email support@swagger.io
+
+	// @license.name Apache 2.0
+	// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+	// @host localhost:8081
+	// @BasePath /api/v1/
+	// @schemes http
+
+	// @securityDefinitions.apikey BearerAuth
 	// @in header
-	// @name token// @license.name Apache 2.0
-	// @license.url http://www.apache.org/licenses/LICENSE-2.0.html// @host localhost:8081
-	// @BasePath /api/v1/ @schemes http
-	// Swagger documentation
-	router.GET("/swagger/*", echoSwagger.WrapHandler)
+	// @name Authorization
+
+	public.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	//User routers
-	router.POST("/user", server.handler.CreateUser)
+	public.POST("/user", server.handler.CreateUser)
 
 	//Entry Time routers
-	router.POST("/entry-time", server.handler.CreateEntryTime)
-	router.PUT("/entry-time", server.handler.UpdateEntryTime)
-	router.GET("/entry-time/:id", server.handler.GetEntryTime)
-	router.GET("/entries-time", server.handler.ListEntryTime)
-	router.DELETE("/entry-time/:id", server.handler.DeleteEntryTime)
+	private.POST("/entry-time", server.handler.CreateEntryTime)
+	private.PUT("/entry-time", server.handler.UpdateEntryTime)
+	private.GET("/entry-time/:id", server.handler.GetEntryTime)
+	private.GET("/entries-time", server.handler.ListEntryTime)
+	private.DELETE("/entry-time/:id", server.handler.DeleteEntryTime)
 
 	server.router = e
 }

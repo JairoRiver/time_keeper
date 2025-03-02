@@ -66,6 +66,11 @@ paths:
         name: page_number
         required: true
         type: integer
+      - description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -75,6 +80,8 @@ paths:
             items:
               $ref: '#/definitions/handler.EntryTimeResponse'
             type: array
+      security:
+      - BearerAuth: []
       summary: List entry times
   /api/v1/entry-time:
     post:
@@ -89,6 +96,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/handler.CreateEntryTimeParams'
+      - description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -96,6 +108,8 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/handler.EntryTimeResponse'
+      security:
+      - BearerAuth: []
       summary: Create an entry time
     put:
       consumes:
@@ -109,6 +123,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/handler.UpdateEntryTimeParams'
+      - description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -116,6 +135,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handler.EntryTimeResponse'
+      security:
+      - BearerAuth: []
       summary: Update an entry time
   /api/v1/entry-time/{id}:
     delete:
@@ -127,11 +148,18 @@ paths:
         name: id
         required: true
         type: string
+      - description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "202":
           description: No Content
+      security:
+      - BearerAuth: []
       summary: Delete an entry time
     get:
       description: Retrieve an entry time by its ID
@@ -142,6 +170,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -149,6 +182,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handler.EntryTimeResponse'
+      security:
+      - BearerAuth: []
       summary: Get an entry time
   /api/v1/user:
     post:

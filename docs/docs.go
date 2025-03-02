@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/api/v1/entries-time": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a paginated list of entry times for a user",
                 "produces": [
                     "application/json"
@@ -37,6 +42,13 @@ const docTemplate = `{
                         "name": "page_number",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -54,6 +66,11 @@ const docTemplate = `{
         },
         "/api/v1/entry-time": {
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update an existing entry time by its ID",
                 "consumes": [
                     "application/json"
@@ -72,6 +89,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/handler.UpdateEntryTimeParams"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -84,6 +108,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new time entry for a user",
                 "consumes": [
                     "application/json"
@@ -102,6 +131,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/handler.CreateEntryTimeParams"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -116,6 +152,11 @@ const docTemplate = `{
         },
         "/api/v1/entry-time/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve an entry time by its ID",
                 "produces": [
                     "application/json"
@@ -129,6 +170,13 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -141,6 +189,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete an entry time by its ID",
                 "produces": [
                     "application/json"
@@ -153,6 +206,13 @@ const docTemplate = `{
                         "description": "Entry Time ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
