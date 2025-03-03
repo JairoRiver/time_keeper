@@ -246,8 +246,7 @@ const docTemplate = `{
         "handler.CreateEntryTimeParams": {
             "type": "object",
             "required": [
-                "time_start",
-                "user_id"
+                "time_start"
             ],
             "properties": {
                 "tag": {
@@ -257,9 +256,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "time_start": {
-                    "type": "string"
-                },
-                "user_id": {
                     "type": "string"
                 }
             }

@@ -7,11 +7,8 @@ definitions:
         type: string
       time_start:
         type: string
-      user_id:
-        type: string
     required:
     - time_start
-    - user_id
     type: object
   handler.EntryTimeResponse:
     properties:
