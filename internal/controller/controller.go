@@ -50,8 +50,10 @@ func getWeekRange(weekOffset int) (time.Time, time.Time) {
 
 	offsetDays := (weekOffset - 1) * 7
 	// First day of the week (monday)
-	startOfWeek := today.AddDate(0, 0, 1-weekDay-offsetDays)
+	auxStartOfWeek := today.AddDate(0, 0, 1-weekDay-offsetDays)
+	startOfWeek := time.Date(auxStartOfWeek.Year(), auxStartOfWeek.Month(), auxStartOfWeek.Day(), 0, 0, 0, 0, time.UTC)
 	// Last day of the week (Sunday)
-	endOfWeek := startOfWeek.AddDate(0, 0, 6)
+	auxEndOfWeek := startOfWeek.AddDate(0, 0, 6)
+	endOfWeek := time.Date(auxEndOfWeek.Year(), auxEndOfWeek.Month(), auxEndOfWeek.Day(), 23, 59, 59, int(time.Nanosecond*999999999), time.UTC)
 	return startOfWeek, endOfWeek
 }
