@@ -47,7 +47,7 @@ tasks:
   server:
     desc: init the server
     cmds:
-      - go run ./main.go
+      - go run ./main.go serve
 
   api_doc:
     desc: generate swagger documentation
