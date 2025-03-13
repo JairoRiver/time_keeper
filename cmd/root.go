@@ -3,6 +3,7 @@ package cmd
 import (
 	"log"
 
+	"github.com/JairoRiver/time_keeper/cmd/migrate"
 	"github.com/JairoRiver/time_keeper/cmd/serve"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +14,7 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	serve.RegisterCommands(cmd)
+	migrate.RegisterCommands(cmd)
 
 	return cmd
 }

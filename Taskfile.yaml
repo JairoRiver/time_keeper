@@ -22,12 +22,12 @@ tasks:
   migrateup:
     desc: Run the migrations up
     cmds:
-      - migrate -path internal/repository/db/migrations -database $DB_URL -verbose up
+      - go run ./main.go migrate up
 
   migratedown:
-    desc: Run the migrations down
+    desc: Run the migrations down 1 step
     cmds:
-      - migrate -path internal/repository/db/migrations -database $DB_URL -verbose down
+      - go run ./main.go migrate down 1
 
   new_migration:
     desc: init a new migration

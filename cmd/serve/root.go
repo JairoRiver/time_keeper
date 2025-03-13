@@ -51,7 +51,7 @@ func NewServerCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&configFile, "config", "./prod.env", "config file")
+	cmd.Flags().StringVar(&configFile, "config", util.DefauldConfigPath, "config file")
 	return cmd
 }
 
