@@ -182,6 +182,19 @@ paths:
       security:
       - BearerAuth: []
       summary: Get an entry time
+  /api/v1/refresh:
+    post:
+      description: generate a new Access token and refresh token if have a valid refresh
+        token
+      operationId: post-refres-token
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ResponseUser'
+      summary: Refresh token endpoint
   /api/v1/user:
     post:
       description: generate a new user

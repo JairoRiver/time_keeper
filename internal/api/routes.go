@@ -24,6 +24,8 @@ func (server *Server) setupRouter() {
 	public := e.Group("api/v1")
 	private := public.Group("")
 	private.Use(server.handler.AuthMiddleware)
+	cookie := public.Group("")
+	cookie.Use(server.handler.CookieMiddleware)
 
 	// @title Short Link API
 	// @version 1.0
@@ -49,6 +51,7 @@ func (server *Server) setupRouter() {
 
 	//User routers
 	public.POST("/user", server.handler.CreateUser)
+	cookie.POST("/refresh", server.handler.RefreshToken)
 
 	//Entry Time routers
 	private.POST("/entry-time", server.handler.CreateEntryTime)

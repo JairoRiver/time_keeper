@@ -223,6 +223,24 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/refresh": {
+            "post": {
+                "description": "generate a new Access token and refresh token if have a valid refresh token",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Refresh token endpoint",
+                "operationId": "post-refres-token",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ResponseUser"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user": {
             "post": {
                 "description": "generate a new user",
