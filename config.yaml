@@ -1,0 +1,5 @@
+database:
+  db_sorce: postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable
+  db_name: time_keeper
+server:
+  address: 0.0.0.0:8080

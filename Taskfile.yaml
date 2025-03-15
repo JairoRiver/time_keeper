@@ -53,3 +53,8 @@ tasks:
     desc: generate swagger documentation
     cmds:
       - swag init -g ./main.go
+
+  compose:
+    desc: lunch docker compose to start the app
+    cmds:
+      - docker compose -f deploy/docker-compose/quickstart.yaml up --build

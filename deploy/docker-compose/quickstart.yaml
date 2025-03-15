@@ -1,0 +1,47 @@
+services:
+  time-keeper-migrate:
+    build: ../..
+    volumes:
+      - type: bind
+        source: ./config.yaml
+        target: /etc/config/config.yaml
+    command: --config /etc/config/config.yaml migrate up
+    restart: on-failure
+    depends_on:
+      postgresd:
+        condition: service_healthy
+    networks:
+      - intranet
+  time-keeper:
+    depends_on:
+      time-keeper-migrate:
+        condition: service_completed_successfully
+    build: ../..
+    ports:
+      - '8080:8080'
+    restart: unless-stopped
+    command: serve --config /etc/config/config.yaml
+    volumes:
+      - type: bind
+        source: ./config.yaml
+        target: /etc/config/config.yaml
+    networks:
+      - intranet
+  postgresd:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=time_keeper
+    healthcheck:
+      test: pg_isready -U root -d time_keeper
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - intranet
+networks:
+  intranet:
