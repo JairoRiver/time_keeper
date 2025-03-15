@@ -1,10 +1,15 @@
 package migrate
 
 import (
+	"database/sql"
+
+	"github.com/JairoRiver/time_keeper/internal/repository/db/migrations"
 	"github.com/JairoRiver/time_keeper/internal/util"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +29,23 @@ func NewMigrateUpCommand() *cobra.Command {
 				log.Fatal().Err(err).Msg("cannot load config")
 			}
 
-			migration, err := migrate.New(util.MigrationFilesPath, config.DBSOURCE)
+			d, err := iofs.New(migrations.MigrationsFS, ".")
+			if err != nil {
+				log.Fatal().Err(err).Msg("cannot load migration files")
+			}
+
+			db, err := sql.Open("pgx", config.DBSOURCE)
+			if err != nil {
+				log.Fatal().Err(err).Msg("Unable to connect to database")
+			}
+			defer db.Close()
+
+			driver, err := postgres.WithInstance(db, &postgres.Config{})
+			if err != nil {
+				log.Fatal().Err(err).Msg("Unable to create mimgrate postgres intance")
+			}
+
+			migration, err := migrate.NewWithInstance("iofs", d, config.DbName, driver)
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot create new migrate instance")
 			}

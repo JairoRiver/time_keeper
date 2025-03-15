@@ -7,6 +7,7 @@ import (
 type Config struct {
 	DBSOURCE      string
 	ServerAddress string
+	DbName        string
 }
 
 func LoadConfig(filePath string) (Config, error) {
@@ -20,5 +21,6 @@ func LoadConfig(filePath string) (Config, error) {
 
 	config.DBSOURCE = myEnv["DB_SOURCE"]
 	config.ServerAddress = myEnv["SERVER_ADDRESS"]
+	config.DbName = myEnv["DB_NAME"]
 	return config, nil
 }
