@@ -1,26 +1,34 @@
 package util
 
 import (
-	"github.com/joho/godotenv"
+	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	DBSOURCE      string
-	ServerAddress string
-	DbName        string
+	Database struct {
+		DbSource string `yaml:"db_sorce"`
+		DbName   string `yaml:"db_name"`
+	} `yaml:"database"`
+	Server struct {
+		Address string `yaml:"address"`
+	} `yaml:"server"`
 }
 
 func LoadConfig(filePath string) (Config, error) {
-	var myEnv map[string]string
 	var config Config
 
-	myEnv, err := godotenv.Read(filePath)
+	file, err := os.Open(filePath)
 	if err != nil {
 		return config, err
 	}
+	defer file.Close()
 
-	config.DBSOURCE = myEnv["DB_SOURCE"]
-	config.ServerAddress = myEnv["SERVER_ADDRESS"]
-	config.DbName = myEnv["DB_NAME"]
+	d := yaml.NewDecoder(file)
+
+	if err := d.Decode(&config); err != nil {
+		return config, err
+	}
 	return config, nil
 }

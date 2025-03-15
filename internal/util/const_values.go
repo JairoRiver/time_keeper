@@ -7,5 +7,5 @@ const (
 	GetUserTypeId         = "id"
 	GetUserTypeIndetityId = "identityId"
 	RefreshTokenName      = "refresh_token"
-	DefauldConfigPath     = "./prod.env"
+	DefauldConfigPath     = "./config.yaml"
 )

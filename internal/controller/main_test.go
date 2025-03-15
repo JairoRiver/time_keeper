@@ -14,12 +14,12 @@ import (
 var testControl Control
 
 func TestMain(m *testing.M) {
-	config, err := util.LoadConfig("../../test.env")
+	config, err := util.LoadConfig("../../config.yaml")
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot load config file")
 	}
 
-	connPool, err := pgxpool.New(context.Background(), config.DBSOURCE)
+	connPool, err := pgxpool.New(context.Background(), config.Database.DbSource)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}

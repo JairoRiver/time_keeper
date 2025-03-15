@@ -42,7 +42,7 @@ func NewMigrateDownCommand() *cobra.Command {
 				log.Fatal().Err(err).Msg("cannot load migration files")
 			}
 
-			db, err := sql.Open("pgx", config.DBSOURCE)
+			db, err := sql.Open("pgx", config.Database.DbSource)
 			if err != nil {
 				log.Fatal().Err(err).Msg("Unable to connect to database")
 			}
@@ -53,7 +53,7 @@ func NewMigrateDownCommand() *cobra.Command {
 				log.Fatal().Err(err).Msg("Unable to create mimgrate postgres intance")
 			}
 
-			migration, err := migrate.NewWithInstance("iofs", d, config.DbName, driver)
+			migration, err := migrate.NewWithInstance("iofs", d, config.Database.DbName, driver)
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot create new migrate instance")
 			}

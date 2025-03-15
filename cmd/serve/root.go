@@ -35,7 +35,7 @@ func NewServerCommand() *cobra.Command {
 			//defer stop()
 			ctx := context.Background()
 
-			connPool, err := pgxpool.New(ctx, config.DBSOURCE)
+			connPool, err := pgxpool.New(ctx, config.Database.DbSource)
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot connect to db")
 			}
@@ -43,11 +43,11 @@ func NewServerCommand() *cobra.Command {
 			control := controller.New(querier)
 			handler := handler.New(control)
 			server := api.New(handler, &logger)
-			err = server.Start(config.ServerAddress)
+			err = server.Start(config.Server.Address)
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot start server:")
 			}
-			log.Info().Msgf("start HTTP gateway server at %s", config.ServerAddress)
+			log.Info().Msgf("start HTTP gateway server at %s", config.Server.Address)
 		},
 	}
 
