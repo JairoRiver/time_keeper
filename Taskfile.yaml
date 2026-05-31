@@ -49,12 +49,22 @@ tasks:
     cmds:
       - go run ./main.go serve
 
+  templ:
+    desc: generate Go code from templ files
+    cmds:
+      - templ generate
+
   api_doc:
     desc: generate swagger documentation
     cmds:
       - swag init -g ./main.go
 
   compose:
-    desc: lunch docker compose to start the app
+    desc: launch docker compose (postgres + logto + app)
     cmds:
       - docker compose -f deploy/docker-compose/quickstart.yaml up --build
+
+  dev:
+    desc: start all dev services and the server
+    cmds:
+      - task: compose

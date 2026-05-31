@@ -1,5 +1,10 @@
 database:
-  db_sorce: postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable
+  db_source: ${DB_SOURCE:-postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable}
   db_name: time_keeper
 server:
   address: 0.0.0.0:8080
+logto:
+  endpoint: ${LOGTO_ENDPOINT:-http://localhost:3001}
+  app_id: ${LOGTO_APP_ID}
+  app_secret: ${LOGTO_APP_SECRET}
+  callback_url: ${LOGTO_CALLBACK_URL:-http://localhost:8080/auth/callback}

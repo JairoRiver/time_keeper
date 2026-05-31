@@ -1,19 +1,40 @@
 package util
 
 import (
+	"io"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
 	Database struct {
-		DbSource string `yaml:"db_sorce"`
+		DbSource string `yaml:"db_source"`
 		DbName   string `yaml:"db_name"`
 	} `yaml:"database"`
 	Server struct {
 		Address string `yaml:"address"`
 	} `yaml:"server"`
+	Logto struct {
+		Endpoint    string `yaml:"endpoint"`
+		AppID       string `yaml:"app_id"`
+		AppSecret   string `yaml:"app_secret"`
+		CallbackURL string `yaml:"callback_url"`
+	} `yaml:"logto"`
+}
+
+// expandEnv replaces ${VAR} and ${VAR:-default} in s using environment variables.
+func expandEnv(s string) string {
+	return os.Expand(s, func(key string) string {
+		if idx := strings.Index(key, ":-"); idx != -1 {
+			if val := os.Getenv(key[:idx]); val != "" {
+				return val
+			}
+			return key[idx+2:]
+		}
+		return os.Getenv(key)
+	})
 }
 
 func LoadConfig(filePath string) (Config, error) {
@@ -25,8 +46,14 @@ func LoadConfig(filePath string) (Config, error) {
 	}
 	defer file.Close()
 
-	d := yaml.NewDecoder(file)
+	content, err := io.ReadAll(file)
+	if err != nil {
+		return config, err
+	}
 
+	expanded := expandEnv(string(content))
+
+	d := yaml.NewDecoder(strings.NewReader(expanded))
 	if err := d.Decode(&config); err != nil {
 		return config, err
 	}
