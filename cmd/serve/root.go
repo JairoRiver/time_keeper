@@ -9,6 +9,7 @@ import (
 	"github.com/JairoRiver/time_keeper/internal/controller"
 	db "github.com/JairoRiver/time_keeper/internal/repository/db/sqlc"
 	"github.com/JairoRiver/time_keeper/internal/util"
+	logtoClient "github.com/JairoRiver/time_keeper/pkg/identity/logto"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -31,21 +32,26 @@ func NewServerCommand() *cobra.Command {
 				log.Fatal().Err(err).Msg("cannot load config")
 			}
 
-			//ctx, stop := signal.NotifyContext(context.Background(), interruptSignals...)
-			//defer stop()
 			ctx := context.Background()
 
 			connPool, err := pgxpool.New(ctx, config.Database.DbSource)
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot connect to db")
 			}
+
+			idp, err := logtoClient.New(ctx, config)
+			if err != nil {
+				log.Fatal().Err(err).Msg("cannot connect to identity provider")
+			}
+
 			querier := db.New(connPool)
 			control := controller.New(querier)
-			handler := handler.New(control)
-			server := api.New(handler, &logger)
+			h := handler.New(control, idp)
+			server := api.New(h, &logger)
+
 			err = server.Start(config.Server.Address)
 			if err != nil {
-				log.Fatal().Err(err).Msg("cannot start server:")
+				log.Fatal().Err(err).Msg("cannot start server")
 			}
 			log.Info().Msgf("start HTTP gateway server at %s", config.Server.Address)
 		},

@@ -5,16 +5,18 @@ import (
 	"time"
 
 	"github.com/JairoRiver/time_keeper/internal/controller"
+	"github.com/JairoRiver/time_keeper/pkg/identity"
 	"github.com/google/uuid"
 )
 
-// Handler defines a HTTP handler struct
+// Handler holds the controller and identity provider dependencies.
 type Handler struct {
-	ctrl controller.Controller
+	ctrl     controller.Controller
+	identity identity.Provider
 }
 
-func New(ctrl controller.Controller) *Handler {
-	return &Handler{ctrl}
+func New(ctrl controller.Controller, idp identity.Provider) *Handler {
+	return &Handler{ctrl: ctrl, identity: idp}
 }
 
 const (
@@ -23,12 +25,10 @@ const (
 )
 
 func validateEntryTimeOwnership(h *Handler, userId, entryTimeId uuid.UUID) (bool, error) {
-	//get entry time
 	entryTime, err := h.ctrl.GetEntryTime(context.Background(), entryTimeId)
 	if err != nil {
 		return false, err
 	}
-
 	if entryTime.UserID != userId {
 		return false, nil
 	}

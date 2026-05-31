@@ -2,11 +2,13 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	db "github.com/JairoRiver/time_keeper/internal/repository/db/sqlc"
 	"github.com/JairoRiver/time_keeper/internal/util"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -97,6 +99,9 @@ func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserRespon
 
 			user, err := c.repo.GetUserByIdentityId(ctx, pgtype.UUID{Bytes: id, Valid: true})
 			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					return UserResponse{}, fmt.Errorf("control GetUser IdentityId type: %w", ErrUserNotFound)
+				}
 				return UserResponse{}, fmt.Errorf("control GetUser IdentityId type repo GetUserByIdentityId error: %w", err)
 			}
 			userResponse := formatUserResponse(user)

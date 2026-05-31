@@ -25,6 +25,7 @@ var ErrInvalidEmailType = errors.New("error email must be a string")
 var ErrInvalidGetParamType = errors.New("error get param type are invalid")
 var ErrEmptyId = errors.New("error id are empty")
 var ErrEmptyEmail = errors.New("error email are empty")
+var ErrUserNotFound = errors.New("user not found")
 
 type Controller interface {
 	CreateEntryTime(ctx context.Context, params CreateEntryTimeParams) (EntryTimeResponse, error)

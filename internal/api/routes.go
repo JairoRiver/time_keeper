@@ -54,7 +54,13 @@ func (server *Server) setupRouter() {
 
 	public.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	//User routers
+	// Auth (Logto OIDC)
+	public.GET("/auth/login", server.handler.Login)
+	public.GET("/auth/callback", server.handler.Callback)
+	cookie.GET("/auth/link", server.handler.LinkAccount)
+	public.POST("/auth/logout", server.handler.Logout)
+
+	// User
 	public.POST("/user", server.handler.CreateUser)
 	cookie.POST("/refresh", server.handler.RefreshToken)
 
