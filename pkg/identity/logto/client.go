@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/JairoRiver/time_keeper/internal/util"
@@ -17,13 +18,16 @@ import (
 )
 
 // Client is the Logto implementation of identity.Provider.
-// It manages the OIDC authorization flow and validates id_tokens via JWKS.
 type Client struct {
 	endpoint    string
 	appID       string
 	appSecret   string
 	callbackURL string
-	jwksCache   *jwk.Cache
+
+	// JWKS cache is created lazily on the first auth request so that the
+	// server starts up instantly even when Logto is not yet running.
+	mu        sync.Mutex
+	jwksCache *jwk.Cache
 }
 
 // Compile-time check: Client must satisfy identity.Provider.
@@ -36,30 +40,13 @@ type tokenResponse struct {
 	ExpiresIn   int    `json:"expires_in"`
 }
 
-// New creates a Logto client and registers the JWKS endpoint in the cache.
-// WithWaitReady(true) makes it block until the first fetch succeeds, so the
-// server fails fast at startup if Logto is unreachable.
-func New(ctx context.Context, cfg util.Config) (*Client, error) {
-	jwksURL := cfg.Logto.Endpoint + "/oidc/jwks"
-
-	cache, err := jwk.NewCache(ctx, httprc.NewClient())
-	if err != nil {
-		return nil, fmt.Errorf("logto: create jwks cache: %w", err)
-	}
-
-	if err := cache.Register(ctx, jwksURL,
-		jwk.WithMinInterval(15*time.Minute),
-		jwk.WithWaitReady(true),
-	); err != nil {
-		return nil, fmt.Errorf("logto: register jwks url: %w", err)
-	}
-
+// New builds a Logto client from config. No network calls are made here.
+func New(_ context.Context, cfg util.Config) (*Client, error) {
 	return &Client{
 		endpoint:    cfg.Logto.Endpoint,
 		appID:       cfg.Logto.AppID,
 		appSecret:   cfg.Logto.AppSecret,
 		callbackURL: cfg.Logto.CallbackURL,
-		jwksCache:   cache,
 	}, nil
 }
 
@@ -108,10 +95,37 @@ func (c *Client) ExchangeCode(ctx context.Context, code string) (*identity.UserC
 	return c.validateIDToken(ctx, tr.IDToken)
 }
 
-// validateIDToken verifies the JWT signature against the cached JWKS and
-// extracts the subject and email claims.
+// cache returns the shared JWKS cache, creating it on first call.
+func (c *Client) cache(ctx context.Context) (*jwk.Cache, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.jwksCache != nil {
+		return c.jwksCache, nil
+	}
+
+	cache, err := jwk.NewCache(ctx, httprc.NewClient())
+	if err != nil {
+		return nil, fmt.Errorf("logto: create jwks cache: %w", err)
+	}
+	if err := cache.Register(ctx, c.endpoint+"/oidc/jwks",
+		jwk.WithMinInterval(15*time.Minute),
+	); err != nil {
+		return nil, fmt.Errorf("logto: register jwks url: %w", err)
+	}
+
+	c.jwksCache = cache
+	return cache, nil
+}
+
+// validateIDToken verifies the JWT signature via JWKS and extracts claims.
 func (c *Client) validateIDToken(ctx context.Context, idToken string) (*identity.UserClaims, error) {
-	keySet, err := c.jwksCache.Lookup(ctx, c.endpoint+"/oidc/jwks")
+	cache, err := c.cache(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	keySet, err := cache.Lookup(ctx, c.endpoint+"/oidc/jwks")
 	if err != nil {
 		return nil, fmt.Errorf("logto: lookup jwks: %w", err)
 	}

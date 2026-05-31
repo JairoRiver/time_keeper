@@ -230,3 +230,5 @@ $RECYCLE.BIN/
 
 prod.env
 test.env
+
+/static/css/output.css

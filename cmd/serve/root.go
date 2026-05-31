@@ -31,6 +31,7 @@ func NewServerCommand() *cobra.Command {
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot load config")
 			}
+			logger.Info().Msg("config loaded")
 
 			ctx := context.Background()
 
@@ -38,22 +39,23 @@ func NewServerCommand() *cobra.Command {
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot connect to db")
 			}
+			logger.Info().Msg("database pool created")
 
 			idp, err := logtoClient.New(ctx, config)
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot connect to identity provider")
 			}
+			logger.Info().Msg("identity provider ready")
 
 			querier := db.New(connPool)
 			control := controller.New(querier)
 			h := handler.New(control, idp)
 			server := api.New(h, &logger)
 
-			err = server.Start(config.Server.Address)
-			if err != nil {
-				log.Fatal().Err(err).Msg("cannot start server")
+			logger.Info().Msgf("starting server at %s", config.Server.Address)
+			if err := server.Start(config.Server.Address); err != nil {
+				log.Fatal().Err(err).Msg("server stopped")
 			}
-			log.Info().Msgf("start HTTP gateway server at %s", config.Server.Address)
 		},
 	}
 

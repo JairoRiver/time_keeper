@@ -9,8 +9,12 @@ import (
 
 func (server *Server) setupRouter() {
 	e := echo.New()
+
+	// Serve generated Tailwind CSS and other static assets.
+	e.Static("/static", "static")
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:4321"},
+		AllowOrigins: []string{"http://localhost:8080"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
@@ -51,6 +55,9 @@ func (server *Server) setupRouter() {
 	// @securityDefinitions.apikey BearerAuth
 	// @in header
 	// @name Authorization
+
+	// Pages (templ)
+	e.GET("/test", server.handler.HelloPage)
 
 	public.GET("/swagger/*", echoSwagger.WrapHandler)
 

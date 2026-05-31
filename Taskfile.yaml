@@ -47,6 +47,22 @@ tasks:
     cmds:
       - templ generate
 
+  tailwind:
+    desc: build Tailwind CSS (one-shot, minified)
+    cmds:
+      - tailwindcss -i static/css/input.css -o static/css/output.css --minify
+
+  tailwind-watch:
+    desc: build Tailwind CSS and watch for changes (dev mode)
+    cmds:
+      - tailwindcss -i static/css/input.css -o static/css/output.css --watch
+
+  generate:
+    desc: run all code generators (templ + tailwind)
+    cmds:
+      - task: templ
+      - task: tailwind
+
   api_doc:
     desc: generate swagger documentation
     cmds:
