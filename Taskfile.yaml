@@ -2,55 +2,48 @@ version: '3'
 
 env:
   DB_URL: 'postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable'
+  COMPOSE_FILE: 'deploy/docker-compose/quickstart.yaml'
 
 tasks:
+  # ── Database ────────────────────────────────────────────────────────────────
   postgres:
-    desc: Build a postgres container
+    desc: start standalone postgres container (without compose)
     cmds:
       - docker run --name time_keeper -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d docker.io/library/postgres:16-alpine
 
   createdb:
-    desc: Create db time_keeper
+    desc: create time_keeper database
     cmds:
       - docker exec -it time_keeper createdb --username=root --owner=root time_keeper
 
   dropdb:
-    desc: Drop time_keeper db
+    desc: drop time_keeper database
     cmds:
       - docker exec -it time_keeper dropdb time_keeper
 
   migrateup:
-    desc: Run the migrations up
+    desc: run migrations up
     cmds:
       - go run ./main.go migrate up
 
   migratedown:
-    desc: Run the migrations down 1 step
+    desc: run migrations down 1 step
     cmds:
       - go run ./main.go migrate down 1
 
   new_migration:
-    desc: init a new migration
+    desc: create a new migration file (use -- name=<name>)
     cmds:
-      - migrate create -ext sql -dir internal/repository/db/migrations -seq $(name)
+      - migrate create -ext sql -dir internal/repository/db/migrations -seq {{.name}}
 
   sqlc:
-    desc: run sqlc comand
+    desc: generate sqlc code from queries
     cmds:
       - sqlc generate
 
-  test:
-    desc: run the test
-    cmds:
-      - go test -v -cover ./...
-
-  server:
-    desc: init the server
-    cmds:
-      - go run ./main.go serve
-
+  # ── Code generation ─────────────────────────────────────────────────────────
   templ:
-    desc: generate Go code from templ files
+    desc: generate Go code from .templ files
     cmds:
       - templ generate
 
@@ -59,12 +52,42 @@ tasks:
     cmds:
       - swag init -g ./main.go
 
-  compose:
-    desc: launch docker compose (postgres + logto + app)
+  # ── Dev workflow ────────────────────────────────────────────────────────────
+  services:
+    desc: start only external services (postgres + logto) for local dev
     cmds:
-      - docker compose -f deploy/docker-compose/quickstart.yaml up --build
+      - docker compose -f $COMPOSE_FILE up -d postgresd logto-db logto
+
+  services-down:
+    desc: stop external services
+    cmds:
+      - docker compose -f $COMPOSE_FILE down
+
+  server:
+    desc: run the Go server locally (requires services running)
+    cmds:
+      - go run ./main.go serve
 
   dev:
-    desc: start all dev services and the server
+    desc: start services + run server (full local dev stack)
     cmds:
-      - task: compose
+      - task: services
+      - task: migrateup
+      - task: server
+
+  # ── Full compose ────────────────────────────────────────────────────────────
+  compose:
+    desc: launch full stack via docker compose (postgres + logto + app)
+    cmds:
+      - docker compose -f $COMPOSE_FILE up --build
+
+  compose-down:
+    desc: stop and remove all compose containers
+    cmds:
+      - docker compose -f $COMPOSE_FILE down
+
+  # ── Tests ───────────────────────────────────────────────────────────────────
+  test:
+    desc: run all tests with coverage
+    cmds:
+      - go test -v -cover ./...

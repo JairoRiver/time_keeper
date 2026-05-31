@@ -1,4 +1,5 @@
 services:
+  # ── App ────────────────────────────────────────────────────────────────────
   time-keeper-migrate:
     build: ../..
     volumes:
@@ -12,6 +13,7 @@ services:
         condition: service_healthy
     networks:
       - intranet
+
   time-keeper:
     depends_on:
       time-keeper-migrate:
@@ -27,6 +29,8 @@ services:
         target: /etc/config/config.yaml
     networks:
       - intranet
+
+  # ── App database ───────────────────────────────────────────────────────────
   postgresd:
     image: postgres:16-alpine
     ports:
@@ -43,5 +47,41 @@ services:
       start_period: 30s
     networks:
       - intranet
+
+  # ── Logto ──────────────────────────────────────────────────────────────────
+  logto:
+    image: svhd/logto:latest
+    ports:
+      - "3001:3001"   # app / OIDC
+      - "3002:3002"   # admin console
+    depends_on:
+      logto-db:
+        condition: service_healthy
+    environment:
+      - TRUST_PROXY_HEADER=1
+      - DB_URL=postgresql://logto:logto@logto-db:5432/logto
+      - ENDPOINT=http://localhost:3001
+      - ADMIN_ENDPOINT=http://localhost:3002
+    # Seeds the DB on first run; the || true prevents restart loops if already seeded
+    entrypoint: ["sh", "-c", "npx @logto/cli db seed --db-url $${DB_URL} || true && node /etc/logto/node_modules/@logto/core/dist/index.js"]
+    networks:
+      - intranet
+
+  # ── Logto database ─────────────────────────────────────────────────────────
+  logto-db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=logto
+      - POSTGRES_PASSWORD=logto
+      - POSTGRES_DB=logto
+    healthcheck:
+      test: pg_isready -U logto -d logto
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - intranet
+
 networks:
   intranet:

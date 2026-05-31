@@ -3,3 +3,8 @@ database:
   db_name: time_keeper
 server:
   address: 0.0.0.0:8080
+logto:
+  endpoint: http://logto:3001
+  app_id: ${LOGTO_APP_ID}
+  app_secret: ${LOGTO_APP_SECRET}
+  callback_url: http://localhost:8080/auth/callback
