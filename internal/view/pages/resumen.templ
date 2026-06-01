@@ -1,0 +1,13 @@
+package pages
+
+import (
+	"github.com/JairoRiver/time_keeper/internal/controller"
+	"github.com/JairoRiver/time_keeper/internal/view/layout"
+)
+
+// F5.2 — implement calendar grid + date range picker here.
+templ Resumen(entries []controller.EntryTimeResponse) {
+	@layout.App("Resumen", "resumen", true) {
+		<p class="text-gray-400">Resumen — próximamente (F5.2)</p>
+	}
+}

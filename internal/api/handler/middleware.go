@@ -110,6 +110,27 @@ func (h *Handler) CookieMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// PageAuthMiddleware protects SSR page routes. Unlike CookieMiddleware it
+// redirects to "/" instead of returning a 401 JSON response.
+func (h *Handler) PageAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie(util.RefreshTokenName)
+		if err != nil {
+			return ctx.Redirect(http.StatusSeeOther, "/")
+		}
+		userId, err := getUserIdFromToken(cookie.Value)
+		if err != nil {
+			return ctx.Redirect(http.StatusSeeOther, "/")
+		}
+		payload, err := auxVerifyToken(h, userId, cookie.Value)
+		if err != nil {
+			return ctx.Redirect(http.StatusSeeOther, "/")
+		}
+		ctx.Set(util.RefreshTokenName, UserInfo{UserId: payload.UserId, Role: payload.Role})
+		return next(ctx)
+	}
+}
+
 func getUserIdFromToken(tokenValue string) (uuid.UUID, error) {
 	//get userId from token
 	var userId uuid.UUID

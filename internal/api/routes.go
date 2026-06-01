@@ -56,8 +56,16 @@ func (server *Server) setupRouter() {
 	// @in header
 	// @name Authorization
 
-	// Pages (templ)
+	// Pages (templ) — public
+	e.GET("/", server.handler.LandingPage)
+	e.GET("/try", server.handler.Try)
 	e.GET("/test", server.handler.HelloPage)
+
+	// Pages (templ) — protected (redirect to / if no session)
+	page := e.Group("")
+	page.Use(server.handler.PageAuthMiddleware)
+	page.GET("/registro", server.handler.RegistroPage)
+	page.GET("/resumen", server.handler.ResumenPage)
 
 	public.GET("/swagger/*", echoSwagger.WrapHandler)
 
