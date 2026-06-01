@@ -1,0 +1,14 @@
+package layout
+templ App(title string, activePage string, authenticated bool){
+    @Base(title) {
+        <div class="flex flex-col min-h-screen">
+            @Header(authenticated)
+            <div class="flex flex-1">
+                @Sidebar(activePage)
+                <main class="flex-1 p-6">
+                    { children... }
+                </main>
+            </div>
+        </div>
+    }
+}

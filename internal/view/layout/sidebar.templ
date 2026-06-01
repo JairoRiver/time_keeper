@@ -1,0 +1,25 @@
+package layout
+templ Sidebar(activePage string){
+    <aside class="w-48 min-h-full bg-green-200 p-4 flex flex-col gap-3">
+        <a
+            href="/registro"
+            class={
+                "block px-4 py-3 rounded-lg font-medium text-gray-700 text-sm",
+                templ.KV("bg-yellow-200 shadow-sm", activePage == "registro"),
+                templ.KV("bg-yellow-100 hover:bg-yellow-200", activePage != "registro"),
+            }
+        >
+            Registro de tiempo
+        </a>
+        <a
+            href="/resumen"
+            class={
+                "block px-4 py-3 rounded-lg font-medium text-gray-700 text-sm",
+                templ.KV("bg-yellow-200 shadow-sm", activePage == "resumen"),
+                templ.KV("bg-yellow-100 hover:bg-yellow-200", activePage != "resumen"),
+            }
+        >
+            Resumen
+        </a>
+    </aside>
+}
