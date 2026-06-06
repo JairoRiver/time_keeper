@@ -17,6 +17,12 @@ templ Header(authenticated bool, isAnonymous bool) {
 					</a>
 				}
 				<div class="w-9 h-9 rounded-full bg-yellow-300"></div>
+				<a
+					href="/auth/logout"
+					class="px-4 py-1.5 rounded-full border-2 border-red-300 text-red-500 font-medium text-sm hover:bg-red-50"
+				>
+					Salir
+				</a>
 			} else {
 				<a href="/auth/login" class="px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50">
 					Entrar

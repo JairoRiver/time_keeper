@@ -5,22 +5,7 @@ env:
   COMPOSE_FILE: 'deploy/docker-compose/quickstart.yaml'
 
 tasks:
-  # ── Database ────────────────────────────────────────────────────────────────
-  postgres:
-    desc: start standalone postgres container (without compose)
-    cmds:
-      - docker run --name time_keeper -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d docker.io/library/postgres:16-alpine
-
-  createdb:
-    desc: create time_keeper database
-    cmds:
-      - docker exec -it time_keeper createdb --username=root --owner=root time_keeper
-
-  dropdb:
-    desc: drop time_keeper database
-    cmds:
-      - docker exec -it time_keeper dropdb time_keeper
-
+  # ── Migrations ──────────────────────────────────────────────────────────────
   migrateup:
     desc: run migrations up
     cmds:
@@ -70,14 +55,21 @@ tasks:
 
   # ── Dev workflow ────────────────────────────────────────────────────────────
   services:
-    desc: start only external services (postgres + logto) for local dev
+    desc: start external services via compose (postgres + logto)
     cmds:
-      - docker compose -f $COMPOSE_FILE up -d postgresd logto-db logto
+      # Stop any standalone postgres container that would conflict on port 5432
+      - docker stop time_keeper 2>/dev/null || true
+      - docker compose -f $COMPOSE_FILE up -d postgresd logto-db logto logto-seed
 
   services-down:
-    desc: stop external services
+    desc: stop external services (data volumes are preserved)
     cmds:
       - docker compose -f $COMPOSE_FILE down
+
+  services-reset:
+    desc: stop external services AND delete all data volumes (full reset)
+    cmds:
+      - docker compose -f $COMPOSE_FILE down -v
 
   server:
     desc: run the Go server locally (requires services running)
@@ -85,7 +77,7 @@ tasks:
       - go run ./main.go serve
 
   dev:
-    desc: start services + run server (full local dev stack)
+    desc: start services + migrate + run server (full local dev stack)
     cmds:
       - task: services
       - task: migrateup
@@ -98,7 +90,7 @@ tasks:
       - docker compose -f $COMPOSE_FILE up --build
 
   compose-down:
-    desc: stop and remove all compose containers
+    desc: stop and remove all compose containers (data volumes preserved)
     cmds:
       - docker compose -f $COMPOSE_FILE down
 

@@ -94,7 +94,7 @@ SELECT id, user_identity_id, email, role, email_validated, is_active, secret_tok
 WHERE user_identity_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserByIdentityId(ctx context.Context, userIdentityID pgtype.UUID) (User, error) {
+func (q *Queries) GetUserByIdentityId(ctx context.Context, userIdentityID pgtype.Text) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByIdentityId, userIdentityID)
 	var i User
 	err := row.Scan(
@@ -147,7 +147,7 @@ RETURNING id, user_identity_id, email, role, email_validated, is_active, secret_
 type UpdateUserParams struct {
 	Email          pgtype.Text `json:"email"`
 	Role           pgtype.Text `json:"role"`
-	UserIdentityID pgtype.UUID `json:"user_identity_id"`
+	UserIdentityID pgtype.Text `json:"user_identity_id"`
 	EmailValidated pgtype.Bool `json:"email_validated"`
 	IsActive       pgtype.Bool `json:"is_active"`
 	SecretTokenKey pgtype.Text `json:"secret_token_key"`

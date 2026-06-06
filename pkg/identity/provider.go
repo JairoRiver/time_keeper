@@ -18,4 +18,9 @@ type Provider interface {
 	// ExchangeCode exchanges an authorization code (from the OIDC callback)
 	// for verified user claims.
 	ExchangeCode(ctx context.Context, code string) (*UserClaims, error)
+
+	// BuildLogoutURL returns the provider's end-session URL.
+	// After redirecting here the provider clears its SSO session and
+	// sends the user back to the app root.
+	BuildLogoutURL() string
 }

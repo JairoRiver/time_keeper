@@ -69,11 +69,13 @@ func (server *Server) setupRouter() {
 
 	public.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	// Auth (Logto OIDC)
-	public.GET("/auth/login", server.handler.Login)
-	public.GET("/auth/callback", server.handler.Callback)
-	cookie.GET("/auth/link", server.handler.LinkAccount)
-	public.POST("/auth/logout", server.handler.Logout)
+	// Auth (Logto OIDC) — web routes, no api/v1 prefix
+	e.GET("/auth/login", server.handler.Login)
+	e.GET("/auth/callback", server.handler.Callback)
+	e.GET("/auth/logout", server.handler.Logout)
+	authCookie := e.Group("")
+	authCookie.Use(server.handler.CookieMiddleware)
+	authCookie.GET("/auth/link", server.handler.LinkAccount)
 
 	// User
 	public.POST("/user", server.handler.CreateUser)

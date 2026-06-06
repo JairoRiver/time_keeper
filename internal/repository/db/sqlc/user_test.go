@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/JairoRiver/time_keeper/internal/util"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,18 +55,17 @@ func TestGetUserById(t *testing.T) {
 func TestGetByIdentityId(t *testing.T) {
 	user := createRandomUser(t)
 
-	//Update and add IdentityId
-	userIdentityId := uuid.New()
+	userIdentityId := util.RandomString(12)
 	updateParams := UpdateUserParams{
-		UserIdentityID: pgtype.UUID{Bytes: userIdentityId, Valid: true},
+		UserIdentityID: pgtype.Text{String: userIdentityId, Valid: true},
 		ID:             user.ID,
 	}
 	testQueries.UpdateUser(context.Background(), updateParams)
 
-	getUser, err := testQueries.GetUserByIdentityId(context.Background(), pgtype.UUID{Bytes: userIdentityId, Valid: true})
+	getUser, err := testQueries.GetUserByIdentityId(context.Background(), pgtype.Text{String: userIdentityId, Valid: true})
 	assert.NoError(t, err)
 	assert.Equal(t, user.ID, getUser.ID)
-	assert.Equal(t, userIdentityId.String(), getUser.UserIdentityID.String())
+	assert.Equal(t, userIdentityId, getUser.UserIdentityID.String)
 	assert.Equal(t, user.Email, getUser.Email)
 	assert.Equal(t, user.Role, getUser.Role)
 	assert.False(t, getUser.EmailValidated)
@@ -78,7 +76,7 @@ func TestGetByIdentityId(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	user := createRandomUser(t)
 	newEmail := util.RandomEmail()
-	userIdentityId := uuid.New()
+	userIdentityId := util.RandomString(12)
 	newSecret := util.RandomString(64)
 	updateParams := UpdateUserParams{
 		ID:             user.ID,
@@ -86,7 +84,7 @@ func TestUpdateUser(t *testing.T) {
 		Email:          pgtype.Text{String: newEmail, Valid: true},
 		EmailValidated: pgtype.Bool{Bool: true, Valid: true},
 		IsActive:       pgtype.Bool{Bool: false, Valid: true},
-		UserIdentityID: pgtype.UUID{Bytes: userIdentityId, Valid: true},
+		UserIdentityID: pgtype.Text{String: userIdentityId, Valid: true},
 		SecretTokenKey: pgtype.Text{String: newSecret, Valid: true},
 	}
 	updatedUser, err := testQueries.UpdateUser(context.Background(), updateParams)
@@ -96,7 +94,7 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, util.UserAdminRole, updatedUser.Role)
 	assert.True(t, updatedUser.EmailValidated)
 	assert.False(t, updatedUser.IsActive)
-	assert.Equal(t, userIdentityId.String(), updatedUser.UserIdentityID.String())
+	assert.Equal(t, userIdentityId, updatedUser.UserIdentityID.String)
 	assert.Equal(t, newSecret, updatedUser.SecretTokenKey)
 }
 

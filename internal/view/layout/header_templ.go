@@ -40,7 +40,7 @@ func Header(authenticated bool, isAnonymous bool) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " <div class=\"w-9 h-9 rounded-full bg-yellow-300\"></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " <div class=\"w-9 h-9 rounded-full bg-yellow-300\"></div><a href=\"/auth/logout\" class=\"px-4 py-1.5 rounded-full border-2 border-red-300 text-red-500 font-medium text-sm hover:bg-red-50\">Salir</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

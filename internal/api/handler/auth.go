@@ -19,8 +19,7 @@ const (
 	oauthModeLinkVal  = "link"
 	oauthCookieMaxAge = 10 * time.Minute
 
-	// TODO: update once templ pages exist.
-	redirectDashboard = "/"
+	redirectDashboard = "/registro"
 	redirectLogin     = "/auth/login"
 )
 
@@ -47,8 +46,13 @@ func (h *Handler) LinkAccount(c echo.Context) error {
 func (h *Handler) Callback(c echo.Context) error {
 	// Verify CSRF state.
 	stateCookie, err := c.Cookie(oauthStateCookie)
-	if err != nil || stateCookie.Value != c.QueryParam("state") {
-		return c.JSON(http.StatusUnauthorized, errors.New("invalid oauth state"))
+	if err != nil {
+		h.log.Warn().Msg("auth callback: oauth state cookie missing")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
+	}
+	if stateCookie.Value != c.QueryParam("state") {
+		h.log.Warn().Msg("auth callback: oauth state mismatch")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
 	}
 	clearCookie(c, oauthStateCookie)
 
@@ -62,98 +66,113 @@ func (h *Handler) Callback(c echo.Context) error {
 
 	claims, err := h.identity.ExchangeCode(ctx, c.QueryParam("code"))
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, err)
+		h.log.Error().Err(err).Msg("auth callback: exchange code failed")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
 	}
 
-	sub, err := uuid.Parse(claims.Sub)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, errors.New("identity provider returned an invalid user id"))
+	if len(claims.Sub) == 0 {
+		h.log.Error().Msg("auth callback: identity provider returned empty sub")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
 	}
 
 	if isLinkMode {
-		return h.handleLink(c, ctx, sub, claims.Email)
+		return h.handleLink(c, ctx, claims.Sub, claims.Email)
 	}
-	return h.handleLogin(c, ctx, sub, claims.Email)
+	return h.handleLogin(c, ctx, claims.Sub, claims.Email)
 }
 
-// Logout clears auth cookies and redirects to the login page.
+// Logout clears the local session cookie and ends the Logto SSO session.
+// Logto will redirect the user back to the app root after clearing its session.
 func (h *Handler) Logout(c echo.Context) error {
 	clearCookie(c, util.RefreshTokenName)
-	return c.Redirect(http.StatusTemporaryRedirect, redirectLogin)
+	return c.Redirect(http.StatusSeeOther, h.identity.BuildLogoutURL())
 }
 
 // handleLink attaches a Logto identity to the current anonymous user.
-func (h *Handler) handleLink(c echo.Context, ctx context.Context, sub uuid.UUID, email string) error {
-	// Verify the user is authenticated via refresh token cookie.
+func (h *Handler) handleLink(c echo.Context, ctx context.Context, sub string, email string) error {
 	cookie, err := c.Cookie(util.RefreshTokenName)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, errors.New("must be logged in to link an account"))
+		h.log.Warn().Msg("handleLink: no refresh token cookie")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
 	}
 	userId, err := getUserIdFromToken(cookie.Value)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, err)
+		h.log.Warn().Err(err).Msg("handleLink: invalid token")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
 	}
 	payload, err := auxVerifyToken(h, userId, cookie.Value)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, err)
+		h.log.Warn().Err(err).Msg("handleLink: token verification failed")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
 	}
 
-	// Guard: reject if the Logto identity is already claimed by another user.
-	_, err = h.ctrl.GetUser(ctx, controller.GetUserParams{
+	existingUser, err := h.ctrl.GetUser(ctx, controller.GetUserParams{
 		GetType: util.GetUserTypeIndetityId,
 		Value:   sub,
 	})
 	if err != nil && !errors.Is(err, controller.ErrUserNotFound) {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	if err == nil {
-		return c.JSON(http.StatusConflict, errors.New("this identity is already linked to another account"))
+		h.log.Error().Err(err).Msg("handleLink: GetUser error")
+		return c.Redirect(http.StatusSeeOther, redirectDashboard)
 	}
 
+	// Identity already linked to another internal user → log in as that user.
+	if err == nil {
+		h.log.Info().Str("sub", sub).Msg("handleLink: identity exists, switching session to existing user")
+		if err := issueRefreshCookie(h, c, ctx, existingUser.UserId, existingUser.Role); err != nil {
+			h.log.Error().Err(err).Msg("handleLink: issueRefreshCookie for existing user failed")
+		}
+		return c.Redirect(http.StatusSeeOther, redirectDashboard)
+	}
+
+	// New link — attach Logto identity to the current anonymous user.
 	_, err = h.ctrl.UpdateUser(ctx, controller.UpdateUserParams{
 		Id:             payload.UserId,
 		UserIdentityID: sub,
 		Email:          email,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		h.log.Error().Err(err).Msg("handleLink: UpdateUser error")
+		return c.Redirect(http.StatusSeeOther, redirectDashboard)
 	}
 
-	return c.Redirect(http.StatusTemporaryRedirect, redirectDashboard)
+	return c.Redirect(http.StatusSeeOther, redirectDashboard)
 }
 
 // handleLogin finds an existing user by Logto sub, or creates one if new.
-func (h *Handler) handleLogin(c echo.Context, ctx context.Context, sub uuid.UUID, email string) error {
+func (h *Handler) handleLogin(c echo.Context, ctx context.Context, sub string, email string) error {
 	user, err := h.ctrl.GetUser(ctx, controller.GetUserParams{
 		GetType: util.GetUserTypeIndetityId,
 		Value:   sub,
 	})
 	if err != nil {
 		if !errors.Is(err, controller.ErrUserNotFound) {
-			return c.JSON(http.StatusInternalServerError, err)
+			h.log.Error().Err(err).Msg("handleLogin: GetUser error")
+			return c.Redirect(http.StatusSeeOther, redirectLogin)
 		}
-		// First login — create internal user and link to Logto identity.
 		user, err = h.ctrl.CreateUser(ctx, controller.CreateUserParam{
 			Email: email,
 			Role:  util.UserDefauldRole,
 		})
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err)
+			h.log.Error().Err(err).Msg("handleLogin: CreateUser error")
+			return c.Redirect(http.StatusSeeOther, redirectLogin)
 		}
 		_, err = h.ctrl.UpdateUser(ctx, controller.UpdateUserParams{
 			Id:             user.UserId,
 			UserIdentityID: sub,
 		})
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err)
+			h.log.Error().Err(err).Msg("handleLogin: UpdateUser error")
+			return c.Redirect(http.StatusSeeOther, redirectLogin)
 		}
 	}
 
 	if err := issueRefreshCookie(h, c, ctx, user.UserId, user.Role); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		h.log.Error().Err(err).Msg("handleLogin: issueRefreshCookie error")
+		return c.Redirect(http.StatusSeeOther, redirectLogin)
 	}
 
-	return c.Redirect(http.StatusTemporaryRedirect, redirectDashboard)
+	return c.Redirect(http.StatusSeeOther, redirectDashboard)
 }
 
 // issueRefreshCookie mints a refresh token and sets it as an HttpOnly cookie.
@@ -173,8 +192,8 @@ func issueRefreshCookie(h *Handler, c echo.Context, ctx context.Context, userId 
 	c.SetCookie(&http.Cookie{
 		Name:     util.RefreshTokenName,
 		Value:    refreshToken,
+		Path:     "/",
 		Expires:  time.Now().UTC().Add(refreshTokenDuration),
-		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
@@ -193,10 +212,12 @@ func setOAuthCookie(c echo.Context, name, value string) {
 }
 
 // clearCookie expires a cookie immediately.
+// Path must match the path used when setting the cookie.
 func clearCookie(c echo.Context, name string) {
 	c.SetCookie(&http.Cookie{
 		Name:    name,
 		Value:   "",
+		Path:    "/",
 		Expires: time.Unix(0, 0),
 		MaxAge:  -1,
 	})

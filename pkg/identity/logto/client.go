@@ -17,12 +17,15 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwt"
 )
 
+
+
 // Client is the Logto implementation of identity.Provider.
 type Client struct {
 	endpoint    string
 	appID       string
 	appSecret   string
 	callbackURL string
+	appBaseURL  string // derived from callbackURL, used for post-logout redirect
 
 	// JWKS cache is created lazily on the first auth request so that the
 	// server starts up instantly even when Logto is not yet running.
@@ -42,12 +45,27 @@ type tokenResponse struct {
 
 // New builds a Logto client from config. No network calls are made here.
 func New(_ context.Context, cfg util.Config) (*Client, error) {
+	// Derive the app base URL from the callbackURL (e.g. http://localhost:8080/auth/callback → http://localhost:8080)
+	appBaseURL := cfg.Logto.CallbackURL
+	if u, err := url.Parse(cfg.Logto.CallbackURL); err == nil {
+		appBaseURL = u.Scheme + "://" + u.Host
+	}
+
 	return &Client{
 		endpoint:    cfg.Logto.Endpoint,
 		appID:       cfg.Logto.AppID,
 		appSecret:   cfg.Logto.AppSecret,
 		callbackURL: cfg.Logto.CallbackURL,
+		appBaseURL:  appBaseURL,
 	}, nil
+}
+
+// BuildLogoutURL returns Logto's end-session URL so the SSO session is cleared.
+func (c *Client) BuildLogoutURL() string {
+	params := url.Values{}
+	params.Set("client_id", c.appID)
+	params.Set("post_logout_redirect_uri", c.appBaseURL)
+	return c.endpoint + "/oidc/session/end?" + params.Encode()
 }
 
 // BuildAuthURL returns the Logto authorization URL.

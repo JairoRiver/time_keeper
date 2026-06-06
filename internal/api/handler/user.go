@@ -69,8 +69,8 @@ func (h *Handler) CreateUser(c echo.Context) error {
 	cookie := http.Cookie{
 		Name:     util.RefreshTokenName,
 		Value:    refreshToken,
+		Path:     "/",
 		Expires:  time.Now().UTC().Add(refreshTokenDuration),
-		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}
@@ -129,8 +129,8 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 	cookie := http.Cookie{
 		Name:     util.RefreshTokenName,
 		Value:    refreshToken,
+		Path:     "/",
 		Expires:  time.Now().UTC().Add(refreshTokenDuration),
-		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}

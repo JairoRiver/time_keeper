@@ -70,22 +70,22 @@ func TestGetUser(t *testing.T) {
 	assert.Equal(t, user.IsActive, userTypeId.IsActive)
 
 	//test get by identityId
-	//type id invalid id format
-	identityTypeInvalidIdParams := GetUserParams{GetType: util.GetUserTypeIndetityId, Value: util.RandomString(8)}
+	//type id invalid: passing a non-string type triggers ErrInvalidIdType
+	identityTypeInvalidIdParams := GetUserParams{GetType: util.GetUserTypeIndetityId, Value: 12345}
 	userTypeIdentityInvalidId, err := testControl.GetUser(context.Background(), identityTypeInvalidIdParams)
 	assert.Zero(t, userTypeIdentityInvalidId)
 	assert.Error(t, err)
 	assert.True(t, errors.Is(err, ErrInvalidIdType))
 
-	//type id zero UUID
-	identityTypeZeroIdParams := GetUserParams{GetType: util.GetUserTypeIndetityId, Value: uuid.Nil}
+	//type id empty string
+	identityTypeZeroIdParams := GetUserParams{GetType: util.GetUserTypeIndetityId, Value: ""}
 	userTypeIdentityZeroId, err := testControl.GetUser(context.Background(), identityTypeZeroIdParams)
 	assert.Zero(t, userTypeIdentityZeroId)
 	assert.Error(t, err)
 	assert.True(t, errors.Is(err, ErrEmptyId))
 
 	//type identity id get user
-	identityId := uuid.New()
+	identityId := util.RandomString(12)
 	updateUserParams := UpdateUserParams{Id: user.UserId, UserIdentityID: identityId}
 	updatedUser, err := testControl.UpdateUser(context.Background(), updateUserParams)
 	assert.NoError(t, err)
@@ -126,7 +126,7 @@ func TestGetUser(t *testing.T) {
 	userTypeEmail, err := testControl.GetUser(context.Background(), emailTypeParams)
 	assert.NoError(t, err)
 	assert.Equal(t, user.UserId, userTypeEmail.UserId)
-	assert.Equal(t, identityId, userTypeEmail.UserIdentityID)
+	assert.Equal(t, identityId, userTypeEmail.UserIdentityID) // identityId is now a string
 	assert.Equal(t, user.Email, userTypeEmail.Email)
 	assert.Equal(t, user.Role, userTypeEmail.Role)
 	assert.Equal(t, user.EmailValidated, userTypeEmail.EmailValidated)
@@ -145,7 +145,7 @@ func TestUpdateUser(t *testing.T) {
 	//update valid inputs
 	newEmail := util.RandomEmail()
 	newRole := util.UserAdminRole
-	newIdentityId := uuid.New()
+	newIdentityId := util.RandomString(12)
 	newSecretKey := util.RandomString(64)
 
 	updateParams := UpdateUserParams{
