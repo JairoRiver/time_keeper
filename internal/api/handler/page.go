@@ -8,6 +8,7 @@ import (
 	"github.com/JairoRiver/time_keeper/internal/controller"
 	"github.com/JairoRiver/time_keeper/internal/util"
 	"github.com/JairoRiver/time_keeper/internal/view/pages"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -50,6 +51,14 @@ func (h *Handler) RegistroPage(c echo.Context) error {
 		page = 1
 	}
 
+	user, err := h.ctrl.GetUser(ctx, controller.GetUserParams{
+		GetType: util.GetUserTypeId,
+		Value:   userInfo.UserId,
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	entries, err := h.ctrl.ListEntryTime(ctx, controller.ListEntryTimeParams{
 		UserId:     userInfo.UserId,
 		PageNumber: page,
@@ -58,7 +67,7 @@ func (h *Handler) RegistroPage(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return pages.Registro(entries, page).Render(c.Request().Context(), c.Response().Writer)
+	return pages.Registro(entries, page, user.UserIdentityID == uuid.Nil).Render(c.Request().Context(), c.Response().Writer)
 }
 
 // ResumenPage renders the summary calendar page.
@@ -66,6 +75,14 @@ func (h *Handler) RegistroPage(c echo.Context) error {
 func (h *Handler) ResumenPage(c echo.Context) error {
 	userInfo := c.Get(util.RefreshTokenName).(UserInfo)
 	ctx := context.Background()
+
+	user, err := h.ctrl.GetUser(ctx, controller.GetUserParams{
+		GetType: util.GetUserTypeId,
+		Value:   userInfo.UserId,
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 
 	entries, err := h.ctrl.ListEntryTime(ctx, controller.ListEntryTimeParams{
 		UserId:     userInfo.UserId,
@@ -75,7 +92,7 @@ func (h *Handler) ResumenPage(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return pages.Resumen(entries).Render(c.Request().Context(), c.Response().Writer)
+	return pages.Resumen(entries, user.UserIdentityID == uuid.Nil).Render(c.Request().Context(), c.Response().Writer)
 }
 
 // HelloPage renders the hello test page. Remove once real pages exist.

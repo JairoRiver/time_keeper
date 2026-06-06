@@ -6,8 +6,8 @@ import (
 )
 
 // F4.4 — implement timer + entry list + modal here.
-templ Registro(entries []controller.EntryTimeResponse, page int) {
-	@layout.App("Registro de tiempo", "registro", true) {
+templ Registro(entries []controller.EntryTimeResponse, page int, isAnonymous bool) {
+	@layout.App("Registro de tiempo", "registro", true, isAnonymous) {
 		<p class="text-gray-400">
 			Registro — próximamente (F4.4) — { len(entries) } entradas
 		</p>

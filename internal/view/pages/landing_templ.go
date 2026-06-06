@@ -10,7 +10,6 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/JairoRiver/time_keeper/internal/view/layout"
 
-// F3.1 — implement the landing hero content here.
 func Landing() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -44,11 +43,15 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = layout.Header(false).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col min-h-screen bg-gray-50\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <main class=\"flex-1 flex items-center justify-center p-10\"><p class=\"text-gray-400\">Landing — próximamente (F3.1)</p></main>")
+			templ_7745c5c3_Err = layout.Header(false, false).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main class=\"flex-1 flex flex-col items-center justify-center px-6 py-16 text-center\"><span class=\"text-6xl mb-6\">⏰</span><h1 class=\"text-4xl font-bold text-gray-800 mb-4\">Registra tu tiempo, <br>sin complicaciones</h1><p class=\"text-lg text-gray-500 max-w-md mb-10\">TimeKeeper es una herramienta simple para registrar en qué inviertes tu tiempo cada día. Sin registro obligatorio — empieza ahora mismo.</p><div class=\"flex flex-col sm:flex-row gap-4 justify-center\"><a href=\"/try\" class=\"px-8 py-3 rounded-full bg-green-400 text-white font-semibold text-lg hover:bg-green-500 transition-colors\">Probar sin cuenta</a> <a href=\"/auth/login\" class=\"px-8 py-3 rounded-full border-2 border-blue-400 text-blue-600 font-semibold text-lg hover:bg-blue-50 transition-colors\">Entrar</a></div><div class=\"mt-16 grid grid-cols-3 gap-8 max-w-2xl text-left\"><div class=\"bg-white rounded-xl p-5 shadow-sm\"><div class=\"text-2xl mb-2\">🏷️</div><h3 class=\"font-semibold text-gray-700 mb-1\">Etiquetas</h3><p class=\"text-sm text-gray-400\">Organiza tus entradas con tags personalizados.</p></div><div class=\"bg-white rounded-xl p-5 shadow-sm\"><div class=\"text-2xl mb-2\">📅</div><h3 class=\"font-semibold text-gray-700 mb-1\">Historial</h3><p class=\"text-sm text-gray-400\">Consulta tus registros agrupados por día.</p></div><div class=\"bg-white rounded-xl p-5 shadow-sm\"><div class=\"text-2xl mb-2\">📊</div><h3 class=\"font-semibold text-gray-700 mb-1\">Resumen</h3><p class=\"text-sm text-gray-400\">Visualiza tu semana en un calendario de bloques.</p></div></div></main></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

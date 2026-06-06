@@ -1,22 +1,30 @@
 package layout
 
-templ Header(authenticated bool){
-    <header class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
-        <div class="flex items-center gap-2">
-            <span class="text-xl font-bold text-gray-800">TimeKeeper</span>
-            <span class="text-xl">⏰</span>
-        </div>
-        <div class="flex items-center gap-3">
-            if authenticated {
-                <div class="w-9 h-9 rounded-full bg-yellow-300"></div>
-            } else {
-                <a href="/auth/login" class="px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50">
-                    Entrar
-                </a>
-                <a href="/user" class="px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50">
-                    Probar
-                </a>
-            }
-        </div>
-    </header>
+templ Header(authenticated bool, isAnonymous bool) {
+	<header class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
+		<div class="flex items-center gap-2">
+			<span class="text-xl font-bold text-gray-800">TimeKeeper</span>
+			<span class="text-xl">⏰</span>
+		</div>
+		<div class="flex items-center gap-3">
+			if authenticated {
+				if isAnonymous {
+					<a
+						href="/auth/link"
+						class="px-5 py-1.5 rounded-full border-2 border-green-400 text-green-600 font-medium hover:bg-green-50"
+					>
+						Crear cuenta
+					</a>
+				}
+				<div class="w-9 h-9 rounded-full bg-yellow-300"></div>
+			} else {
+				<a href="/auth/login" class="px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50">
+					Entrar
+				</a>
+				<a href="/try" class="px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50">
+					Probar
+				</a>
+			}
+		</div>
+	</header>
 }

@@ -8,7 +8,7 @@ package layout
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Header(authenticated bool) templ.Component {
+func Header(authenticated bool, isAnonymous bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -34,17 +34,23 @@ func Header(authenticated bool) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if authenticated {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"w-9 h-9 rounded-full bg-yellow-300\"></div>")
+			if isAnonymous {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/auth/link\" class=\"px-5 py-1.5 rounded-full border-2 border-green-400 text-green-600 font-medium hover:bg-green-50\">Crear cuenta</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " <div class=\"w-9 h-9 rounded-full bg-yellow-300\"></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/auth/login\" class=\"px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50\">Entrar</a> <a href=\"/user\" class=\"px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50\">Probar</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<a href=\"/auth/login\" class=\"px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50\">Entrar</a> <a href=\"/try\" class=\"px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50\">Probar</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
