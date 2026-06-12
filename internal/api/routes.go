@@ -65,6 +65,8 @@ func (server *Server) setupRouter() {
 	page := e.Group("")
 	page.Use(server.handler.PageAuthMiddleware)
 	page.GET("/registro", server.handler.RegistroPage)
+	page.POST("/registro/start", server.handler.TimerStart)
+	page.POST("/registro/stop", server.handler.TimerStop)
 	page.GET("/resumen", server.handler.ResumenPage)
 
 	public.GET("/swagger/*", echoSwagger.WrapHandler)

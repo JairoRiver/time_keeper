@@ -43,7 +43,7 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col min-h-screen bg-gray-50\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex min-h-screen flex-col bg-gradient-to-b from-slate-50 via-white to-indigo-50/40\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -51,13 +51,97 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main class=\"flex-1 flex flex-col items-center justify-center px-6 py-16 text-center\"><span class=\"text-6xl mb-6\">⏰</span><h1 class=\"text-4xl font-bold text-gray-800 mb-4\">Registra tu tiempo, <br>sin complicaciones</h1><p class=\"text-lg text-gray-500 max-w-md mb-10\">TimeKeeper es una herramienta simple para registrar en qué inviertes tu tiempo cada día. Sin registro obligatorio — empieza ahora mismo.</p><div class=\"flex flex-col sm:flex-row gap-4 justify-center\"><a href=\"/try\" class=\"px-8 py-3 rounded-full bg-green-400 text-white font-semibold text-lg hover:bg-green-500 transition-colors\">Probar sin cuenta</a> <a href=\"/auth/login\" class=\"px-8 py-3 rounded-full border-2 border-blue-400 text-blue-600 font-semibold text-lg hover:bg-blue-50 transition-colors\">Entrar</a></div><div class=\"mt-16 grid grid-cols-3 gap-8 max-w-2xl text-left\"><div class=\"bg-white rounded-xl p-5 shadow-sm\"><div class=\"text-2xl mb-2\">🏷️</div><h3 class=\"font-semibold text-gray-700 mb-1\">Etiquetas</h3><p class=\"text-sm text-gray-400\">Organiza tus entradas con tags personalizados.</p></div><div class=\"bg-white rounded-xl p-5 shadow-sm\"><div class=\"text-2xl mb-2\">📅</div><h3 class=\"font-semibold text-gray-700 mb-1\">Historial</h3><p class=\"text-sm text-gray-400\">Consulta tus registros agrupados por día.</p></div><div class=\"bg-white rounded-xl p-5 shadow-sm\"><div class=\"text-2xl mb-2\">📊</div><h3 class=\"font-semibold text-gray-700 mb-1\">Resumen</h3><p class=\"text-sm text-gray-400\">Visualiza tu semana en un calendario de bloques.</p></div></div></main></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main class=\"flex flex-1 flex-col items-center px-6 py-20 text-center\"><span class=\"mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-600\"><span class=\"recording-dot h-2 w-2 rounded-full bg-indigo-500\"></span> Registra tu tiempo sin fricción</span><h1 class=\"max-w-2xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl\">Registra tu tiempo, <span class=\"bg-gradient-to-r from-indigo-500 to-violet-600 bg-clip-text text-transparent\">sin complicaciones</span></h1><p class=\"mt-5 max-w-md text-lg text-slate-500\">TimeKeeper es una herramienta simple para registrar en qué inviertes tu tiempo cada día. Sin registro obligatorio — empieza ahora mismo.</p><div class=\"mt-10 flex flex-col gap-3 sm:flex-row\"><a href=\"/try\" class=\"inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 px-8 py-3 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20 transition-opacity hover:opacity-90\">Probar sin cuenta <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 7l5 5-5 5M6 12h12\"></path></svg></a> <a href=\"/auth/login\" class=\"inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-8 py-3 text-lg font-semibold text-slate-700 transition-colors hover:bg-slate-50\">Entrar</a></div><div class=\"mt-20 grid max-w-3xl grid-cols-1 gap-5 text-left sm:grid-cols-3\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = featureCard("🏷️", "Etiquetas", "Organiza tus entradas con tags personalizados.").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = featureCard("📅", "Historial", "Consulta tus registros agrupados por día.").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = featureCard("📊", "Resumen", "Visualiza tu semana en un calendario de bloques.").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></main></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
 		templ_7745c5c3_Err = layout.Base("TimeKeeper").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func featureCard(icon string, title string, desc string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md\"><div class=\"mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-2xl\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(icon)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/pages/landing.templ`, Line: 48, Col: 102}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><h3 class=\"mb-1 font-semibold text-slate-800\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/pages/landing.templ`, Line: 49, Col: 55}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</h3><p class=\"text-sm text-slate-500\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(desc)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/pages/landing.templ`, Line: 50, Col: 42}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

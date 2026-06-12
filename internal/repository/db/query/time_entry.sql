@@ -31,7 +31,13 @@ WHERE
   id = sqlc.arg(id)
 RETURNING *;
 
+-- name: GetActiveTimerByUser :one
+SELECT * FROM time_entries
+WHERE user_id = $1 AND time_end IS NULL
+ORDER BY time_start DESC
+LIMIT 1;
+
 -- name: DeleteTimeEntry :one
-DELETE FROM time_entries 
+DELETE FROM time_entries
 WHERE id = $1
 RETURNING *;

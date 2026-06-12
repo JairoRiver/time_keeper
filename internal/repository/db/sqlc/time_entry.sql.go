@@ -51,13 +51,35 @@ func (q *Queries) CreateTimeEntry(ctx context.Context, arg CreateTimeEntryParams
 }
 
 const deleteTimeEntry = `-- name: DeleteTimeEntry :one
-DELETE FROM time_entries 
+DELETE FROM time_entries
 WHERE id = $1
 RETURNING id, user_id, tag, time_start, time_end, created_at, updated_at
 `
 
 func (q *Queries) DeleteTimeEntry(ctx context.Context, id uuid.UUID) (TimeEntry, error) {
 	row := q.db.QueryRow(ctx, deleteTimeEntry, id)
+	var i TimeEntry
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Tag,
+		&i.TimeStart,
+		&i.TimeEnd,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getActiveTimerByUser = `-- name: GetActiveTimerByUser :one
+SELECT id, user_id, tag, time_start, time_end, created_at, updated_at FROM time_entries
+WHERE user_id = $1 AND time_end IS NULL
+ORDER BY time_start DESC
+LIMIT 1
+`
+
+func (q *Queries) GetActiveTimerByUser(ctx context.Context, userID uuid.UUID) (TimeEntry, error) {
+	row := q.db.QueryRow(ctx, getActiveTimerByUser, userID)
 	var i TimeEntry
 	err := row.Scan(
 		&i.ID,

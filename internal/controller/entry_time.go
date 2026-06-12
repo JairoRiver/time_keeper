@@ -2,11 +2,13 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	db "github.com/JairoRiver/time_keeper/internal/repository/db/sqlc"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -186,6 +188,64 @@ func (c *Control) GetEntryTimeOwner(ctx context.Context, entryTimeId uuid.UUID) 
 
 	entryTimeOwnerResponse := EntryTimeOwnerResponse{EntryTimeId: entryTime.ID, EntryTimeUserId: entryTime.UserID}
 	return entryTimeOwnerResponse, nil
+}
+
+// GetActiveTimer returns the open entry (no TimeEnd) for a user, if any.
+func (c *Control) GetActiveTimer(ctx context.Context, userId uuid.UUID) (EntryTimeResponse, bool, error) {
+	if userId == uuid.Nil {
+		return EntryTimeResponse{}, false, fmt.Errorf("control GetActiveTimer userId is empty, error: %w", ErrEmptyId)
+	}
+	entry, err := c.repo.GetActiveTimerByUser(ctx, userId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return EntryTimeResponse{}, false, nil
+		}
+		return EntryTimeResponse{}, false, fmt.Errorf("control GetActiveTimer repo error: %w", err)
+	}
+	return formatEntryTimeResponse(entry), true, nil
+}
+
+// StopTimer finds the active entry for a user and sets its TimeEnd to now.
+func (c *Control) StopTimer(ctx context.Context, userId uuid.UUID) (EntryTimeResponse, error) {
+	active, isActive, err := c.GetActiveTimer(ctx, userId)
+	if err != nil {
+		return EntryTimeResponse{}, err
+	}
+	if !isActive {
+		return EntryTimeResponse{}, nil
+	}
+	return c.UpdateEntryTime(ctx, UpdateEntryTimeParams{
+		Id:      active.ID,
+		TimeEnd: time.Now(),
+	})
+}
+
+// ListEntryTimeByDateRangeParams holds parameters for a custom date-range listing.
+type ListEntryTimeByDateRangeParams struct {
+	UserId    uuid.UUID
+	DateStart time.Time
+	DateEnd   time.Time
+}
+
+// ListEntryTimeByDateRange returns all entries for a user within an explicit date range.
+func (c *Control) ListEntryTimeByDateRange(ctx context.Context, params ListEntryTimeByDateRangeParams) ([]EntryTimeResponse, error) {
+	if params.UserId == uuid.Nil {
+		return nil, fmt.Errorf("control ListEntryTimeByDateRange userId is empty, error: %w", ErrEmptyId)
+	}
+	listParams := db.ListTimeEntryParams{
+		UserID:      params.UserId,
+		TimeStart:   pgtype.Timestamp{Time: params.DateStart, Valid: true},
+		TimeStart_2: pgtype.Timestamp{Time: params.DateEnd, Valid: true},
+	}
+	entries, err := c.repo.ListTimeEntry(ctx, listParams)
+	if err != nil {
+		return nil, fmt.Errorf("control ListEntryTimeByDateRange repo error: %w", err)
+	}
+	out := make([]EntryTimeResponse, 0, len(entries))
+	for _, e := range entries {
+		out = append(out, formatEntryTimeResponse(e))
+	}
+	return out, nil
 }
 
 // delete entry time method

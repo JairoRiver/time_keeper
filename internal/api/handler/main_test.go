@@ -87,6 +87,24 @@ func (m *MockController) GetEntryTimeOwner(ctx context.Context, entryTimeId uuid
 	return controller.EntryTimeOwnerResponse{}, args.Error(1)
 }
 
+func (m *MockController) GetActiveTimer(ctx context.Context, userId uuid.UUID) (controller.EntryTimeResponse, bool, error) {
+	args := m.Called(ctx, userId)
+	return args.Get(0).(controller.EntryTimeResponse), args.Bool(1), args.Error(2)
+}
+
+func (m *MockController) StopTimer(ctx context.Context, userId uuid.UUID) (controller.EntryTimeResponse, error) {
+	args := m.Called(ctx, userId)
+	return args.Get(0).(controller.EntryTimeResponse), args.Error(1)
+}
+
+func (m *MockController) ListEntryTimeByDateRange(ctx context.Context, params controller.ListEntryTimeByDateRangeParams) ([]controller.EntryTimeResponse, error) {
+	args := m.Called(ctx, params)
+	if args.Get(0) != nil {
+		return args.Get(0).([]controller.EntryTimeResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 // ----------------------- HELPERS ----------------------- //
 
 // newTestHandler returns a Handler with a mocked Controller.

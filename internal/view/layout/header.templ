@@ -1,33 +1,47 @@
 package layout
 
 templ Header(authenticated bool, isAnonymous bool) {
-	<header class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
-		<div class="flex items-center gap-2">
-			<span class="text-xl font-bold text-gray-800">TimeKeeper</span>
-			<span class="text-xl">⏰</span>
-		</div>
+	<header class="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-md border-b border-slate-200">
+		<a href="/" class="flex items-center gap-2.5">
+			<span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+					<circle cx="12" cy="12" r="9"></circle>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"></path>
+				</svg>
+			</span>
+			<span class="text-lg font-bold tracking-tight text-slate-800">TimeKeeper</span>
+		</a>
 		<div class="flex items-center gap-3">
 			if authenticated {
 				if isAnonymous {
 					<a
 						href="/auth/link"
-						class="px-5 py-1.5 rounded-full border-2 border-green-400 text-green-600 font-medium hover:bg-green-50"
+						class="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
 					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
 						Crear cuenta
 					</a>
 				}
-				<div class="w-9 h-9 rounded-full bg-yellow-300"></div>
+				<div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-orange-400 text-sm font-bold text-white shadow-sm">
+					U
+				</div>
 				<a
 					href="/auth/logout"
-					class="px-4 py-1.5 rounded-full border-2 border-red-300 text-red-500 font-medium text-sm hover:bg-red-50"
+					class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
 				>
 					Salir
 				</a>
 			} else {
-				<a href="/auth/login" class="px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50">
+				<a
+					href="/auth/login"
+					class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100"
+				>
 					Entrar
 				</a>
-				<a href="/try" class="px-5 py-1.5 rounded-full border-2 border-blue-400 text-blue-600 font-medium hover:bg-blue-50">
+				<a
+					href="/try"
+					class="inline-flex items-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+				>
 					Probar
 				</a>
 			}

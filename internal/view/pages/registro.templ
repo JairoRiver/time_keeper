@@ -1,15 +1,232 @@
 package pages
 
 import (
+	"fmt"
 	"github.com/JairoRiver/time_keeper/internal/controller"
 	"github.com/JairoRiver/time_keeper/internal/view/layout"
 )
 
-// F4.4 — implement timer + entry list + modal here.
-templ Registro(entries []controller.EntryTimeResponse, page int, isAnonymous bool) {
+templ Registro(
+	groups []DayGroup,
+	page int,
+	isAnonymous bool,
+	activeEntry controller.EntryTimeResponse,
+	hasActive bool,
+) {
 	@layout.App("Registro de tiempo", "registro", true, isAnonymous) {
-		<p class="text-gray-400">
-			Registro — próximamente (F4.4) — { len(entries) } entradas
-		</p>
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold tracking-tight text-slate-900">Registro de tiempo</h1>
+			<p class="mt-1 text-sm text-slate-500">Inicia un temporizador y consulta tus entradas de la semana.</p>
+		</div>
+		<div class="flex flex-col gap-6">
+			@timerWidget(activeEntry, hasActive)
+			@registroEntryList(groups, page)
+		</div>
+		@registroScript()
 	}
+}
+
+templ timerWidget(activeEntry controller.EntryTimeResponse, hasActive bool) {
+	<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+		if hasActive {
+			<form method="POST" action="/registro/stop" class="flex flex-col gap-4 sm:flex-row sm:items-center">
+				<div class="flex flex-1 items-center gap-3">
+					<span class="recording-dot h-3 w-3 shrink-0 rounded-full bg-red-500"></span>
+					<div class="min-w-0">
+						<p class="truncate text-base font-semibold text-slate-800">{ activeEntry.Tag }</p>
+						<p class="text-xs font-medium uppercase tracking-wide text-red-500">En curso</p>
+					</div>
+				</div>
+				<span
+					id="elapsed"
+					data-ts={ activeEntry.TimeStart.Format("2006-01-02T15:04:05") }
+					class="text-center font-mono text-3xl font-semibold tabular-nums tracking-tight text-slate-900"
+				>00:00:00</span>
+				<button
+					type="submit"
+					class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-6 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-red-600"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+					Stop
+				</button>
+			</form>
+		} else {
+			<form method="POST" action="/registro/start" class="flex flex-col gap-4 sm:flex-row sm:items-center">
+				<div class="relative flex-1">
+					<svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.41.59l7 7a2 2 0 010 2.82l-5 5a2 2 0 01-2.82 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"></path></svg>
+					<input
+						type="text"
+						name="tag"
+						placeholder="¿En qué vas a trabajar?"
+						autocomplete="off"
+						class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-slate-800 placeholder-slate-400 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-100"
+					/>
+				</div>
+				<button
+					type="submit"
+					class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 px-6 py-3 font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+					Start
+				</button>
+			</form>
+		}
+	</div>
+}
+
+templ registroEntryList(groups []DayGroup, page int) {
+	<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+		if len(groups) == 0 {
+			<div class="flex flex-col items-center justify-center gap-2 py-12 text-center">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"></path></svg>
+				<p class="text-sm font-medium text-slate-500">Sin entradas esta semana</p>
+				<p class="text-xs text-slate-400">Inicia el temporizador para registrar tu primera entrada.</p>
+			</div>
+		}
+		<div class="flex flex-col gap-6">
+			for di, g := range groups {
+				<div class="flex flex-col gap-2">
+					<div class="flex items-center gap-3">
+						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{ g.Label }</p>
+						<div class="h-px flex-1 bg-slate-100"></div>
+					</div>
+					for ti, tg := range g.TagGroups {
+						<button
+							type="button"
+							data-dialog={ fmt.Sprintf("d%d-%d", di, ti) }
+							class="group flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3 text-left transition-colors hover:border-indigo-200 hover:bg-indigo-50/50"
+						>
+							<div class="flex min-w-0 items-center gap-3">
+								<span class="h-2.5 w-2.5 shrink-0 rounded-full" style={ fmt.Sprintf("background-color: %s;", TagHexColor(tg.Tag)) }></span>
+								<span class="truncate font-medium text-slate-700">{ tg.Tag }</span>
+								if len(tg.Entries) > 1 {
+									<span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-500">×{ fmt.Sprintf("%d", len(tg.Entries)) }</span>
+								}
+							</div>
+							<div class="flex shrink-0 items-center gap-3">
+								if tg.HasOpen {
+									<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">en curso</span>
+								}
+								<span class="font-mono text-sm font-medium tabular-nums text-slate-500">{ FormatTagGroupDuration(tg) }</span>
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-300 transition-colors group-hover:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+							</div>
+						</button>
+						@tagGroupModal(fmt.Sprintf("d%d-%d", di, ti), tg)
+					}
+				</div>
+			}
+		</div>
+		@registroPagination(page)
+	</div>
+}
+
+templ tagGroupModal(id string, tg TagGroup) {
+	<dialog
+		id={ id }
+		data-closable
+		class="m-auto w-full max-w-sm rounded-2xl p-0 shadow-2xl backdrop:bg-slate-900/40 backdrop:backdrop-blur-sm"
+	>
+		<div class="flex flex-col gap-4 bg-white p-6">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-2.5">
+					<span class="h-3 w-3 rounded-full" style={ fmt.Sprintf("background-color: %s;", TagHexColor(tg.Tag)) }></span>
+					<h2 class="text-lg font-bold text-slate-900">{ tg.Tag }</h2>
+				</div>
+				<button
+					data-dialog-close
+					type="button"
+					class="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+				</button>
+			</div>
+			<div class="flex flex-col gap-2">
+				for i, e := range tg.Entries {
+					<div class="rounded-xl bg-slate-50 p-3">
+						if len(tg.Entries) > 1 {
+							<p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Entrada { fmt.Sprintf("%d", i+1) }</p>
+						}
+						<div class="grid grid-cols-2 gap-3">
+							<div>
+								<p class="text-xs font-medium text-slate-400">Inicio</p>
+								<p class="mt-0.5 font-mono text-sm font-medium text-slate-700">{ FormatTime(e.TimeStart) }</p>
+								<p class="text-xs text-slate-400">{ FormatDate(e.TimeStart) }</p>
+							</div>
+							<div>
+								<p class="text-xs font-medium text-slate-400">Fin</p>
+								if e.TimeEnd.IsZero() {
+									<p class="mt-0.5 text-sm font-medium text-red-500">en curso</p>
+								} else {
+									<p class="mt-0.5 font-mono text-sm font-medium text-slate-700">{ FormatTime(e.TimeEnd) }</p>
+									<p class="text-xs text-slate-400">{ FormatDate(e.TimeEnd) }</p>
+								}
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+			if tg.Total > 0 {
+				<div class="flex items-center justify-between rounded-xl bg-indigo-50 px-4 py-2.5">
+					<span class="text-xs font-semibold uppercase tracking-wide text-indigo-500">Total</span>
+					<span class="font-mono text-sm font-bold text-indigo-700">{ FormatTagGroupDuration(tg) }</span>
+				</div>
+			}
+		</div>
+	</dialog>
+}
+
+templ registroPagination(page int) {
+	<div class="mt-6 flex items-center justify-center gap-1.5">
+		for i := 1; i <= 5; i++ {
+			<a
+				href={ templ.SafeURL(fmt.Sprintf("/registro?page=%d", i)) }
+				class={
+					"flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium transition-colors",
+					templ.KV("bg-indigo-600 text-white shadow-sm", i == page),
+					templ.KV("text-slate-500 hover:bg-slate-100", i != page),
+				}
+			>{ fmt.Sprintf("%d", i) }</a>
+		}
+	</div>
+}
+
+templ registroScript() {
+	<script>
+		(function() {
+			// Open each tag-group dialog when its row is clicked
+			document.querySelectorAll('[data-dialog]').forEach(function(btn) {
+				btn.addEventListener('click', function() {
+					document.getElementById(this.dataset.dialog).showModal();
+				});
+			});
+			// Close button inside any dialog
+			document.querySelectorAll('[data-dialog-close]').forEach(function(btn) {
+				btn.addEventListener('click', function() {
+					this.closest('dialog').close();
+				});
+			});
+			// Close on backdrop click
+			document.querySelectorAll('dialog[data-closable]').forEach(function(dlg) {
+				dlg.addEventListener('click', function(e) {
+					if (e.target === dlg) dlg.close();
+				});
+			});
+
+			// Running timer (HH:MM:SS)
+			var elapsedEl = document.getElementById('elapsed');
+			if (elapsedEl) {
+				var start = new Date(elapsedEl.dataset.ts);
+				function pad(n) { return String(n).padStart(2, '0'); }
+				function tick() {
+					var diff = Math.max(0, Math.floor((Date.now() - start.getTime()) / 1000));
+					elapsedEl.textContent =
+						pad(Math.floor(diff / 3600)) + ':' +
+						pad(Math.floor((diff % 3600) / 60)) + ':' +
+						pad(diff % 60);
+				}
+				tick();
+				setInterval(tick, 1000);
+			}
+		})();
+	</script>
 }
