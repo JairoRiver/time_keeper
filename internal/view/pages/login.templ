@@ -1,0 +1,29 @@
+package pages
+
+import "github.com/JairoRiver/time_keeper/internal/view/layout"
+
+// Login renders the email/password sign-in page. email pre-fills the field on a
+// failed attempt; errMsg shows a validation/credentials error when non-empty.
+templ Login(email string, errMsg string) {
+	@layout.Base("Entrar") {
+		<div class="flex min-h-screen flex-col bg-gradient-to-b from-slate-50 via-white to-indigo-50/40">
+			@layout.Header(false, false)
+			<main class="flex flex-1 items-center justify-center px-6 py-12">
+				@authCard("Entrar", "Accede a tu cuenta de TimeKeeper") {
+					<form method="POST" action="/auth/login" class="flex flex-col gap-4">
+						if errMsg != "" {
+							@authError(errMsg)
+						}
+						@authField("email", "email", "Email", "tu@email.com", email, "email")
+						@authField("password", "password", "Contraseña", "••••••••", "", "current-password")
+						@authSubmit("Entrar")
+					</form>
+					<p class="mt-6 text-center text-sm text-slate-500">
+						¿No tienes cuenta?
+						<a href="/auth/register" class="font-semibold text-indigo-600 hover:text-indigo-700">Regístrate</a>
+					</p>
+				}
+			</main>
+		</div>
+	}
+}

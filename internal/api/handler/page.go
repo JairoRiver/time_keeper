@@ -15,12 +15,8 @@ import (
 
 // LandingPage renders the public landing page. Authenticated users are redirected to /registro.
 func (h *Handler) LandingPage(c echo.Context) error {
-	if cookie, err := c.Cookie(util.RefreshTokenName); err == nil {
-		if userId, err := getUserIdFromToken(cookie.Value); err == nil {
-			if _, err := auxVerifyToken(h, userId, cookie.Value); err == nil {
-				return c.Redirect(http.StatusSeeOther, "/registro")
-			}
-		}
+	if h.hasValidSession(c) {
+		return c.Redirect(http.StatusSeeOther, "/registro")
 	}
 	return pages.Landing().Render(c.Request().Context(), c.Response().Writer)
 }

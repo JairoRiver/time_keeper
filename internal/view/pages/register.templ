@@ -1,0 +1,30 @@
+package pages
+
+import "github.com/JairoRiver/time_keeper/internal/view/layout"
+
+// Register renders the sign-up page. email pre-fills the field on a failed
+// attempt; errMsg shows a validation error when non-empty.
+templ Register(email string, errMsg string) {
+	@layout.Base("Crear cuenta") {
+		<div class="flex min-h-screen flex-col bg-gradient-to-b from-slate-50 via-white to-indigo-50/40">
+			@layout.Header(false, false)
+			<main class="flex flex-1 items-center justify-center px-6 py-12">
+				@authCard("Crear cuenta", "Regístrate para guardar tus registros") {
+					<form method="POST" action="/auth/register" class="flex flex-col gap-4">
+						if errMsg != "" {
+							@authError(errMsg)
+						}
+						@authField("email", "email", "Email", "tu@email.com", email, "email")
+						@authField("password", "password", "Contraseña", "Mínimo 8 caracteres", "", "new-password")
+						@authField("password", "password_confirm", "Repite la contraseña", "••••••••", "", "new-password")
+						@authSubmit("Crear cuenta")
+					</form>
+					<p class="mt-6 text-center text-sm text-slate-500">
+						¿Ya tienes cuenta?
+						<a href="/auth/login" class="font-semibold text-indigo-600 hover:text-indigo-700">Entra</a>
+					</p>
+				}
+			</main>
+		</div>
+	}
+}

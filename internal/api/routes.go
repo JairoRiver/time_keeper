@@ -100,8 +100,12 @@ func (server *Server) setupRouter() {
 		api.GET("/swagger/*", echoSwagger.WrapHandler)
 	}
 
-	// Auth (Logto OIDC) — web routes, no api/v1 prefix
-	e.GET("/auth/login", server.handler.Login)
+	// Auth (local email/password) — web routes, no api/v1 prefix
+	e.GET("/auth/login", server.handler.LoginPage)
+	e.POST("/auth/login", server.handler.LoginSubmit, authRateLimiter)
+	e.GET("/auth/register", server.handler.RegisterPage)
+	e.POST("/auth/register", server.handler.RegisterSubmit, authRateLimiter)
+	// Logto OIDC (legacy — removed in TK-14)
 	e.GET("/auth/callback", server.handler.Callback)
 	e.GET("/auth/logout", server.handler.Logout)
 	// Per-route middleware (not an empty-prefix group) to avoid a global "/*"

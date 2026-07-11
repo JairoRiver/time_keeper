@@ -23,13 +23,6 @@ const (
 	redirectLogin     = "/auth/login"
 )
 
-// Login redirects the user to the Logto authorization endpoint.
-func (h *Handler) Login(c echo.Context) error {
-	state := util.RandomString(32)
-	h.setOAuthCookie(c, oauthStateCookie, state)
-	return c.Redirect(http.StatusTemporaryRedirect, h.identity.BuildAuthURL(state))
-}
-
 // LinkAccount starts the Logto OIDC flow for an already-authenticated user
 // who wants to link their anonymous account to a Logto identity.
 // Requires a valid refresh token cookie (via CookieMiddleware).
