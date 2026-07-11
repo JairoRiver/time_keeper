@@ -13,6 +13,9 @@ func (server *Server) setupRouter() {
 	// Serve generated Tailwind CSS and other static assets.
 	e.Static("/static", "static")
 
+	// Default security headers (X-Frame-Options, X-Content-Type-Options, etc.).
+	e.Use(middleware.Secure())
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:8080"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
