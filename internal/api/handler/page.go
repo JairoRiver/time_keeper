@@ -90,7 +90,7 @@ func (h *Handler) TimerStart(c echo.Context) error {
 	_, err := h.ctrl.CreateEntryTime(ctx, controller.CreateEntryTimeParams{
 		UserID:    userInfo.UserId,
 		Tag:       tag,
-		TimeStart: time.Now(),
+		TimeStart: time.Now().UTC(),
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)

@@ -216,7 +216,7 @@ func (c *Control) StopTimer(ctx context.Context, userId uuid.UUID) (EntryTimeRes
 	}
 	return c.UpdateEntryTime(ctx, UpdateEntryTimeParams{
 		Id:      active.ID,
-		TimeEnd: time.Now(),
+		TimeEnd: time.Now().UTC(),
 	})
 }
 

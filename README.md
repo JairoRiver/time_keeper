@@ -12,20 +12,20 @@ A full-stack time tracking application. Log in, create time entries with tags, a
 - Astro 5 · Tailwind CSS v4 · Zod
 
 **Deployment**
-- Docker · Docker Compose
+- Podman · Podman Compose
 
 ## Prerequisites
 
 - Go 1.23+
 - Node.js 18+
-- Docker & Docker Compose
+- Podman & Podman Compose (podman-compose)
 
-## Quickstart (Docker Compose)
+## Quickstart (Podman Compose)
 
 The easiest way to run the full stack:
 
 ```bash
-docker compose -f deploy/docker-compose/quickstart.yaml up --build
+podman compose -f deploy/docker-compose/quickstart.yaml up --build
 ```
 
 | Service  | URL                          |
@@ -123,7 +123,7 @@ Token lifetimes: access token 24 h · refresh token 30 days (HttpOnly cookie).
 | `task test` | Run all tests |
 | `task server` | Start backend server |
 | `task api_doc` | Regenerate Swagger docs |
-| `task compose` | Run full stack with Docker Compose |
+| `task compose` | Run full stack with Podman Compose |
 
 ## Testing
 

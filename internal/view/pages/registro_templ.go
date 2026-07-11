@@ -127,9 +127,9 @@ func timerWidget(activeEntry controller.EntryTimeResponse, hasActive bool) templ
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(activeEntry.TimeStart.Format("2006-01-02T15:04:05"))
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(activeEntry.TimeStart.UTC().Format("2006-01-02T15:04:05Z"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/pages/registro.templ`, Line: 42, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/pages/registro.templ`, Line: 42, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {

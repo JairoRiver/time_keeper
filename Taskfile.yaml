@@ -58,18 +58,18 @@ tasks:
     desc: start external services via compose (postgres + logto)
     cmds:
       # Stop any standalone postgres container that would conflict on port 5432
-      - docker stop time_keeper 2>/dev/null || true
-      - docker compose -f $COMPOSE_FILE up -d postgresd logto-db logto logto-seed
+      - podman stop time_keeper 2>/dev/null || true
+      - podman compose -f $COMPOSE_FILE up -d postgresd logto-db logto logto-seed
 
   services-down:
     desc: stop external services (data volumes are preserved)
     cmds:
-      - docker compose -f $COMPOSE_FILE down
+      - podman compose -f $COMPOSE_FILE down
 
   services-reset:
     desc: stop external services AND delete all data volumes (full reset)
     cmds:
-      - docker compose -f $COMPOSE_FILE down -v
+      - podman compose -f $COMPOSE_FILE down -v
 
   server:
     desc: run the Go server locally (requires services running)
@@ -85,14 +85,14 @@ tasks:
 
   # ── Full compose ────────────────────────────────────────────────────────────
   compose:
-    desc: launch full stack via docker compose (postgres + logto + app)
+    desc: launch full stack via podman compose (postgres + logto + app)
     cmds:
-      - docker compose -f $COMPOSE_FILE up --build
+      - podman compose -f $COMPOSE_FILE up --build
 
   compose-down:
     desc: stop and remove all compose containers (data volumes preserved)
     cmds:
-      - docker compose -f $COMPOSE_FILE down
+      - podman compose -f $COMPOSE_FILE down
 
   # ── Tests ───────────────────────────────────────────────────────────────────
   test:

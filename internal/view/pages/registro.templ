@@ -39,7 +39,7 @@ templ timerWidget(activeEntry controller.EntryTimeResponse, hasActive bool) {
 				</div>
 				<span
 					id="elapsed"
-					data-ts={ activeEntry.TimeStart.Format("2006-01-02T15:04:05") }
+					data-ts={ activeEntry.TimeStart.UTC().Format("2006-01-02T15:04:05Z") }
 					class="text-center font-mono text-3xl font-semibold tabular-nums tracking-tight text-slate-900"
 				>00:00:00</span>
 				<button

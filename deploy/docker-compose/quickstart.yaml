@@ -32,7 +32,7 @@ services:
 
   # ── App database ───────────────────────────────────────────────────────────
   postgresd:
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
     ports:
       - "5432:5432"
     volumes:
@@ -52,7 +52,7 @@ services:
 
   # ── Logto seed (runs once, always exits 0) ────────────────────────────────
   logto-seed:
-    image: svhd/logto:latest
+    image: docker.io/svhd/logto:latest
     depends_on:
       logto-db:
         condition: service_healthy
@@ -65,7 +65,7 @@ services:
 
   # ── Logto ──────────────────────────────────────────────────────────────────
   logto:
-    image: svhd/logto:latest
+    image: docker.io/svhd/logto:latest
     ports:
       - "3001:3001"   # OIDC / app
       - "3002:3002"   # admin console
@@ -82,7 +82,7 @@ services:
 
   # ── Logto database ─────────────────────────────────────────────────────────
   logto-db:
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
     volumes:
       - logto_db_data:/var/lib/postgresql/data
     environment:
