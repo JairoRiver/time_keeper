@@ -21,12 +21,14 @@ type EntryTimeResponse struct {
 }
 
 func formatEntryTimeResponse(entryTime db.TimeEntry) EntryTimeResponse {
+	// timestamptz values come back from pgx in the server's local zone; normalize
+	// to UTC so the whole app has a single, consistent time contract.
 	entryTimeResponse := EntryTimeResponse{
 		ID:        entryTime.ID,
 		UserID:    entryTime.UserID,
 		Tag:       entryTime.Tag,
-		TimeStart: entryTime.TimeStart.Time,
-		TimeEnd:   entryTime.TimeEnd.Time,
+		TimeStart: entryTime.TimeStart.Time.UTC(),
+		TimeEnd:   entryTime.TimeEnd.Time.UTC(),
 	}
 	return entryTimeResponse
 }
@@ -46,15 +48,15 @@ func (c *Control) CreateEntryTime(ctx context.Context, params CreateEntryTimePar
 	}
 
 	//check if TimeEnd is are a zero value
-	var timeEnd pgtype.Timestamp
+	var timeEnd pgtype.Timestamptz
 	if !params.TimeEnd.IsZero() {
-		timeEnd = pgtype.Timestamp{Time: params.TimeEnd, Valid: true}
+		timeEnd = pgtype.Timestamptz{Time: params.TimeEnd, Valid: true}
 	}
 
 	entryTimeParam := db.CreateTimeEntryParams{
 		UserID:    params.UserID,
 		Tag:       params.Tag,
-		TimeStart: pgtype.Timestamp{Time: params.TimeStart, Valid: true},
+		TimeStart: pgtype.Timestamptz{Time: params.TimeStart, Valid: true},
 		TimeEnd:   timeEnd,
 	}
 	entryTime, err := c.repo.CreateTimeEntry(ctx, entryTimeParam)
@@ -106,8 +108,8 @@ func (c *Control) ListEntryTime(ctx context.Context, params ListEntryTimeParams)
 
 	listParams := db.ListTimeEntryParams{
 		UserID:      params.UserId,
-		TimeStart:   pgtype.Timestamp{Time: dateStart, Valid: true},
-		TimeStart_2: pgtype.Timestamp{Time: dateEnd, Valid: true},
+		TimeStart:   pgtype.Timestamptz{Time: dateStart, Valid: true},
+		TimeStart_2: pgtype.Timestamptz{Time: dateEnd, Valid: true},
 	}
 	timeEntries, err := c.repo.ListTimeEntry(ctx, listParams)
 	if err != nil {
@@ -148,16 +150,16 @@ func (c *Control) UpdateEntryTime(ctx context.Context, params UpdateEntryTimePar
 
 	// chechk if the TimeStart are empty
 	if params.TimeStart.IsZero() {
-		updateParams.TimeStart = pgtype.Timestamp{Valid: false}
+		updateParams.TimeStart = pgtype.Timestamptz{Valid: false}
 	} else {
-		updateParams.TimeStart = pgtype.Timestamp{Time: params.TimeStart, Valid: true}
+		updateParams.TimeStart = pgtype.Timestamptz{Time: params.TimeStart, Valid: true}
 	}
 
 	// chechk if the TimeEnd are empty
 	if params.TimeEnd.IsZero() {
-		updateParams.TimeEnd = pgtype.Timestamp{Valid: false}
+		updateParams.TimeEnd = pgtype.Timestamptz{Valid: false}
 	} else {
-		updateParams.TimeEnd = pgtype.Timestamp{Time: params.TimeEnd, Valid: true}
+		updateParams.TimeEnd = pgtype.Timestamptz{Time: params.TimeEnd, Valid: true}
 	}
 
 	updateEntryTime, err := c.repo.UpdateTimeEntry(ctx, updateParams)
@@ -234,8 +236,8 @@ func (c *Control) ListEntryTimeByDateRange(ctx context.Context, params ListEntry
 	}
 	listParams := db.ListTimeEntryParams{
 		UserID:      params.UserId,
-		TimeStart:   pgtype.Timestamp{Time: params.DateStart, Valid: true},
-		TimeStart_2: pgtype.Timestamp{Time: params.DateEnd, Valid: true},
+		TimeStart:   pgtype.Timestamptz{Time: params.DateStart, Valid: true},
+		TimeStart_2: pgtype.Timestamptz{Time: params.DateEnd, Valid: true},
 	}
 	entries, err := c.repo.ListTimeEntry(ctx, listParams)
 	if err != nil {

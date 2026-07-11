@@ -25,7 +25,7 @@ func createRandomTimeEntry(t *testing.T, userId pgtype.UUID) TimeEntry {
 	timeEntryParams := CreateTimeEntryParams{
 		UserID:    newUserId,
 		Tag:       tag,
-		TimeStart: pgtype.Timestamp{Time: time.Now(), Valid: true},
+		TimeStart: pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}
 
 	timeEntry, err := testQueries.CreateTimeEntry(context.Background(), timeEntryParams)
@@ -62,8 +62,8 @@ func TestListTimeEntry(t *testing.T) {
 
 	listParams := ListTimeEntryParams{
 		UserID:      user.ID,
-		TimeStart:   pgtype.Timestamp{Time: time.Now().AddDate(0, 0, -1), Valid: true},
-		TimeStart_2: pgtype.Timestamp{Time: time.Now(), Valid: true},
+		TimeStart:   pgtype.Timestamptz{Time: time.Now().AddDate(0, 0, -1), Valid: true},
+		TimeStart_2: pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}
 	listEntries, err := testQueries.ListTimeEntry(context.Background(), listParams)
 	assert.NoError(t, err)

@@ -24,10 +24,10 @@ INSERT INTO time_entries (
 `
 
 type CreateTimeEntryParams struct {
-	UserID    uuid.UUID        `json:"user_id"`
-	Tag       string           `json:"tag"`
-	TimeStart pgtype.Timestamp `json:"time_start"`
-	TimeEnd   pgtype.Timestamp `json:"time_end"`
+	UserID    uuid.UUID          `json:"user_id"`
+	Tag       string             `json:"tag"`
+	TimeStart pgtype.Timestamptz `json:"time_start"`
+	TimeEnd   pgtype.Timestamptz `json:"time_end"`
 }
 
 func (q *Queries) CreateTimeEntry(ctx context.Context, arg CreateTimeEntryParams) (TimeEntry, error) {
@@ -123,9 +123,9 @@ ORDER BY DATE_TRUNC('day',time_start) DESC, tag ASC
 `
 
 type ListTimeEntryParams struct {
-	UserID      uuid.UUID        `json:"user_id"`
-	TimeStart   pgtype.Timestamp `json:"time_start"`
-	TimeStart_2 pgtype.Timestamp `json:"time_start_2"`
+	UserID      uuid.UUID          `json:"user_id"`
+	TimeStart   pgtype.Timestamptz `json:"time_start"`
+	TimeStart_2 pgtype.Timestamptz `json:"time_start_2"`
 }
 
 func (q *Queries) ListTimeEntry(ctx context.Context, arg ListTimeEntryParams) ([]TimeEntry, error) {
@@ -169,10 +169,10 @@ RETURNING id, user_id, tag, time_start, time_end, created_at, updated_at
 `
 
 type UpdateTimeEntryParams struct {
-	Tag       pgtype.Text      `json:"tag"`
-	TimeStart pgtype.Timestamp `json:"time_start"`
-	TimeEnd   pgtype.Timestamp `json:"time_end"`
-	ID        uuid.UUID        `json:"id"`
+	Tag       pgtype.Text        `json:"tag"`
+	TimeStart pgtype.Timestamptz `json:"time_start"`
+	TimeEnd   pgtype.Timestamptz `json:"time_end"`
+	ID        uuid.UUID          `json:"id"`
 }
 
 func (q *Queries) UpdateTimeEntry(ctx context.Context, arg UpdateTimeEntryParams) (TimeEntry, error) {

@@ -10,8 +10,8 @@ CREATE TABLE "users" (
   "email_validated" bool NOT NULL DEFAULT false,
   "is_active" bool NOT NULL DEFAULT true,
   "secret_token_key" varchar(64) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT Now(),
-  "updated_at" timestamp
+  "created_at" timestamptz NOT NULL DEFAULT Now(),
+  "updated_at" timestamptz
 );
 
 -- Enforce unique emails case-insensitively, but only for users that have one.
@@ -22,10 +22,10 @@ CREATE TABLE "time_entries" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "user_id" uuid NOT NULL,
   "tag" varchar NOT NULL,
-  "time_start" timestamp NOT NULL,
-  "time_end" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT Now(),
-  "updated_at" timestamp
+  "time_start" timestamptz NOT NULL,
+  "time_end" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT Now(),
+  "updated_at" timestamptz
 );
 
 ALTER TABLE "time_entries" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");

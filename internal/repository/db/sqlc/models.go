@@ -10,24 +10,24 @@ import (
 )
 
 type TimeEntry struct {
-	ID        uuid.UUID        `json:"id"`
-	UserID    uuid.UUID        `json:"user_id"`
-	Tag       string           `json:"tag"`
-	TimeStart pgtype.Timestamp `json:"time_start"`
-	TimeEnd   pgtype.Timestamp `json:"time_end"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        uuid.UUID          `json:"id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	Tag       string             `json:"tag"`
+	TimeStart pgtype.Timestamptz `json:"time_start"`
+	TimeEnd   pgtype.Timestamptz `json:"time_end"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {
-	ID             uuid.UUID        `json:"id"`
-	UserIdentityID pgtype.Text      `json:"user_identity_id"`
-	Email          pgtype.Text      `json:"email"`
-	PasswordHash   pgtype.Text      `json:"password_hash"`
-	Role           string           `json:"role"`
-	EmailValidated bool             `json:"email_validated"`
-	IsActive       bool             `json:"is_active"`
-	SecretTokenKey string           `json:"secret_token_key"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+	ID             uuid.UUID          `json:"id"`
+	UserIdentityID pgtype.Text        `json:"user_identity_id"`
+	Email          pgtype.Text        `json:"email"`
+	PasswordHash   pgtype.Text        `json:"password_hash"`
+	Role           string             `json:"role"`
+	EmailValidated bool               `json:"email_validated"`
+	IsActive       bool               `json:"is_active"`
+	SecretTokenKey string             `json:"secret_token_key"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
