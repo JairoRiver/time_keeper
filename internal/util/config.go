@@ -14,7 +14,8 @@ type Config struct {
 		DbName   string `yaml:"db_name"`
 	} `yaml:"database"`
 	Server struct {
-		Address string `yaml:"address"`
+		Address       string `yaml:"address"`
+		SecureCookies bool   `yaml:"secure_cookies"`
 	} `yaml:"server"`
 	Logto struct {
 		Endpoint    string `yaml:"endpoint"`

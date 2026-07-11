@@ -52,6 +52,36 @@ func TestCreateUser_Success(t *testing.T) {
 		cookie := rec.Result().Cookies()[0]
 		assert.Equal(t, util.RefreshTokenName, cookie.Name)
 		assert.NotEmpty(t, cookie.Value)
+		// Default (dev) config leaves the Secure flag off so local HTTP works.
+		assert.False(t, cookie.Secure)
+		assert.True(t, cookie.HttpOnly)
+	}
+
+	mockCtrl.AssertExpectations(t)
+}
+
+func TestCreateUser_SecureCookie(t *testing.T) {
+	e := echo.New()
+
+	mockCtrl := new(MockController)
+	// secureCookies enabled simulates a production HTTPS deployment.
+	h := &Handler{ctrl: mockCtrl, secureCookies: true}
+
+	userID := uuid.New()
+	secretKey := util.RandomString(64)
+
+	mockCtrl.On("CreateUser", mock.Anything, controller.CreateUserParam{Role: util.UserDefauldRole}).Return(controller.UserResponse{UserId: userID, Role: util.UserDefauldRole}, nil)
+	mockCtrl.On("GetUserSecretKey", mock.Anything, userID).Return(controller.UserKeyResponse{UserId: userID, SecretKey: secretKey}, nil)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/user", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if assert.NoError(t, h.CreateUser(c)) {
+		cookie := rec.Result().Cookies()[0]
+		assert.Equal(t, util.RefreshTokenName, cookie.Name)
+		assert.True(t, cookie.Secure)
+		assert.True(t, cookie.HttpOnly)
 	}
 
 	mockCtrl.AssertExpectations(t)

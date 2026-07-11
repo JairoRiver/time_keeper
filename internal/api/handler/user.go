@@ -66,15 +66,7 @@ func (h *Handler) CreateUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	cookie := http.Cookie{
-		Name:     util.RefreshTokenName,
-		Value:    refreshToken,
-		Path:     "/",
-		Expires:  time.Now().UTC().Add(refreshTokenDuration),
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-	c.SetCookie(&cookie)
+	c.SetCookie(h.sessionCookie(refreshToken))
 
 	response := parseUserResponse(user, accessToken, payload.ExpiresAt.Time.UTC())
 	return c.JSON(http.StatusCreated, response)
@@ -126,15 +118,7 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	cookie := http.Cookie{
-		Name:     util.RefreshTokenName,
-		Value:    refreshToken,
-		Path:     "/",
-		Expires:  time.Now().UTC().Add(refreshTokenDuration),
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-	c.SetCookie(&cookie)
+	c.SetCookie(h.sessionCookie(refreshToken))
 
 	response := parseUserResponse(user, accessToken, payload.ExpiresAt.Time.UTC())
 	return c.JSON(http.StatusCreated, response)

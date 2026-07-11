@@ -26,7 +26,7 @@ const (
 // Login redirects the user to the Logto authorization endpoint.
 func (h *Handler) Login(c echo.Context) error {
 	state := util.RandomString(32)
-	setOAuthCookie(c, oauthStateCookie, state)
+	h.setOAuthCookie(c, oauthStateCookie, state)
 	return c.Redirect(http.StatusTemporaryRedirect, h.identity.BuildAuthURL(state))
 }
 
@@ -35,8 +35,8 @@ func (h *Handler) Login(c echo.Context) error {
 // Requires a valid refresh token cookie (via CookieMiddleware).
 func (h *Handler) LinkAccount(c echo.Context) error {
 	state := util.RandomString(32)
-	setOAuthCookie(c, oauthStateCookie, state)
-	setOAuthCookie(c, oauthModeCookie, oauthModeLinkVal)
+	h.setOAuthCookie(c, oauthStateCookie, state)
+	h.setOAuthCookie(c, oauthModeCookie, oauthModeLinkVal)
 	return c.Redirect(http.StatusTemporaryRedirect, h.identity.BuildAuthURL(state))
 }
 
@@ -189,24 +189,18 @@ func issueRefreshCookie(h *Handler, c echo.Context, ctx context.Context, userId 
 	if err != nil {
 		return err
 	}
-	c.SetCookie(&http.Cookie{
-		Name:     util.RefreshTokenName,
-		Value:    refreshToken,
-		Path:     "/",
-		Expires:  time.Now().UTC().Add(refreshTokenDuration),
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
+	c.SetCookie(h.sessionCookie(refreshToken))
 	return nil
 }
 
 // setOAuthCookie sets a short-lived HttpOnly cookie for the OAuth CSRF flow.
-func setOAuthCookie(c echo.Context, name, value string) {
+func (h *Handler) setOAuthCookie(c echo.Context, name, value string) {
 	c.SetCookie(&http.Cookie{
 		Name:     name,
 		Value:    value,
 		Expires:  time.Now().UTC().Add(oauthCookieMaxAge),
 		HttpOnly: true,
+		Secure:   h.secureCookies,
 		SameSite: http.SameSiteLaxMode,
 	})
 }
