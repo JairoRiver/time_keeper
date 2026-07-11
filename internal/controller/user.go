@@ -40,8 +40,14 @@ type CreateUserParam struct {
 }
 
 func (c *Control) CreateUser(ctx context.Context, params CreateUserParam) (UserResponse, error) {
+	//generate a cryptographically secure per-user JWT signing key
+	secretKey, err := util.SecureRandomString(64)
+	if err != nil {
+		return UserResponse{}, fmt.Errorf("control CreateUser generate secret key error: %w", err)
+	}
+
 	//check if role have a valid value
-	dbUserParams := db.CreateUserParams{SecretTokenKey: util.RandomString(64)}
+	dbUserParams := db.CreateUserParams{SecretTokenKey: secretKey}
 	if params.Role == util.UserAdminRole || params.Role == util.UserDefauldRole {
 		dbUserParams.Role = params.Role
 	} else {
