@@ -74,13 +74,6 @@ func (h *Handler) Callback(c echo.Context) error {
 	return h.handleLogin(c, ctx, claims.Sub, claims.Email)
 }
 
-// Logout clears the local session cookie and ends the Logto SSO session.
-// Logto will redirect the user back to the app root after clearing its session.
-func (h *Handler) Logout(c echo.Context) error {
-	clearCookie(c, util.RefreshTokenName)
-	return c.Redirect(http.StatusSeeOther, h.identity.BuildLogoutURL())
-}
-
 // handleLink attaches a Logto identity to the current anonymous user.
 func (h *Handler) handleLink(c echo.Context, ctx context.Context, sub string, email string) error {
 	cookie, err := c.Cookie(util.RefreshTokenName)

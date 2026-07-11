@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func postForm(h *Handler, handler echo.HandlerFunc, form url.Values) *httptest.ResponseRecorder {
@@ -131,6 +132,26 @@ func TestRegisterSubmit_EmailTaken(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, rec.Code)
 	assert.Contains(t, rec.Body.String(), "ya está registrado")
 	mockCtrl.AssertExpectations(t)
+}
+
+func TestLogout(t *testing.T) {
+	h := newTestHandler(new(MockController))
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/auth/logout", nil)
+	req.AddCookie(&http.Cookie{Name: util.RefreshTokenName, Value: "some-token"})
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	require.NoError(t, h.Logout(c))
+
+	assert.Equal(t, http.StatusSeeOther, rec.Code)
+	assert.Equal(t, "/", rec.Header().Get("Location"))
+
+	// The session cookie must be expired.
+	cookie := rec.Result().Cookies()[0]
+	assert.Equal(t, util.RefreshTokenName, cookie.Name)
+	assert.True(t, cookie.MaxAge < 0)
 }
 
 func TestLinkSubmit_Success(t *testing.T) {

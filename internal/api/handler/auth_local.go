@@ -118,6 +118,12 @@ func (h *Handler) RegisterSubmit(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, redirectDashboard)
 }
 
+// Logout clears the local session cookie and returns to the landing page.
+func (h *Handler) Logout(c echo.Context) error {
+	clearCookie(c, util.RefreshTokenName)
+	return c.Redirect(http.StatusSeeOther, "/")
+}
+
 // LinkPage renders the form for an anonymous user to attach email/password
 // credentials to their current session. Requires PageAuthMiddleware.
 func (h *Handler) LinkPage(c echo.Context) error {
