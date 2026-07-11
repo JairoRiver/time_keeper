@@ -1,11 +1,29 @@
 package api
 
 import (
+	"time"
+
 	_ "github.com/JairoRiver/time_keeper/docs"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"golang.org/x/time/rate"
 )
+
+// newAuthRateLimiter returns an in-memory, per-IP rate limiter for the auth
+// endpoints (anonymous user creation and login). A burst of 5 with a slow
+// refill (5 req/min) stops user-creation spam and password brute-force while
+// leaving normal navigation untouched.
+func newAuthRateLimiter() echo.MiddlewareFunc {
+	store := middleware.NewRateLimiterMemoryStoreWithConfig(
+		middleware.RateLimiterMemoryStoreConfig{
+			Rate:      rate.Limit(5.0 / 60.0), // ~0.083 req/s = 5 per minute
+			Burst:     5,
+			ExpiresIn: 3 * time.Minute,
+		},
+	)
+	return middleware.RateLimiter(store)
+}
 
 func (server *Server) setupRouter() {
 	e := echo.New()
@@ -39,6 +57,9 @@ func (server *Server) setupRouter() {
 	cookie := public.Group("")
 	cookie.Use(server.handler.CookieMiddleware)
 
+	// Shared per-IP limiter for auth endpoints (reused for login in TK-11).
+	authRateLimiter := newAuthRateLimiter()
+
 	// @title Short Link API
 	// @version 1.0
 	// @description Testing Swagger APIs.
@@ -61,7 +82,7 @@ func (server *Server) setupRouter() {
 
 	// Pages (templ) — public
 	e.GET("/", server.handler.LandingPage)
-	e.GET("/try", server.handler.Try)
+	e.GET("/try", server.handler.Try, authRateLimiter)
 	e.GET("/test", server.handler.HelloPage)
 
 	// Pages (templ) — protected (redirect to / if no session)
@@ -83,7 +104,7 @@ func (server *Server) setupRouter() {
 	authCookie.GET("/auth/link", server.handler.LinkAccount)
 
 	// User
-	public.POST("/user", server.handler.CreateUser)
+	public.POST("/user", server.handler.CreateUser, authRateLimiter)
 	cookie.POST("/refresh", server.handler.RefreshToken)
 
 	//Entry Time routers
