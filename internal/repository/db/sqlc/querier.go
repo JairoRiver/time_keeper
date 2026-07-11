@@ -19,7 +19,6 @@ type Querier interface {
 	GetTimeEntryById(ctx context.Context, id uuid.UUID) (TimeEntry, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (User, error)
-	GetUserByIdentityId(ctx context.Context, userIdentityID pgtype.Text) (User, error)
 	GetUserCredentialsByEmail(ctx context.Context, email string) (GetUserCredentialsByEmailRow, error)
 	GetUserSecretById(ctx context.Context, id uuid.UUID) (GetUserSecretByIdRow, error)
 	ListTimeEntry(ctx context.Context, arg ListTimeEntryParams) ([]TimeEntry, error)

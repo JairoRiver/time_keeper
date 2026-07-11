@@ -69,7 +69,8 @@ func (h *Handler) RegistroPage(c echo.Context) error {
 	}
 
 	groups := groupEntriesByDay(entries)
-	return pages.Registro(groups, page, user.UserIdentityID == "", activeEntry, hasActive).
+	// Anonymous users (created via /try) have no email until they link an account.
+	return pages.Registro(groups, page, user.Email == "", activeEntry, hasActive).
 		Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -133,7 +134,7 @@ func (h *Handler) ResumenPage(c echo.Context) error {
 	}
 
 	columns := buildDayColumns(entries, dateStart, dateEnd)
-	return pages.Resumen(columns, dateStart, dateEnd, user.UserIdentityID == "").
+	return pages.Resumen(columns, dateStart, dateEnd, user.Email == "").
 		Render(c.Request().Context(), c.Response().Writer)
 }
 

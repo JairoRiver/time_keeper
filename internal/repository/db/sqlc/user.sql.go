@@ -20,7 +20,7 @@ INSERT INTO users (
   password_hash
 ) VALUES (
   $1, $2, $3, $4
-) RETURNING id, user_identity_id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at
+) RETURNING id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -40,7 +40,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.UserIdentityID,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Role,
@@ -54,7 +53,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, user_identity_id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
+SELECT id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -63,7 +62,6 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, 
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.UserIdentityID,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Role,
@@ -77,7 +75,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, 
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, user_identity_id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
+SELECT id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -86,30 +84,6 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.UserIdentityID,
-		&i.Email,
-		&i.PasswordHash,
-		&i.Role,
-		&i.EmailValidated,
-		&i.IsActive,
-		&i.SecretTokenKey,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const getUserByIdentityId = `-- name: GetUserByIdentityId :one
-SELECT id, user_identity_id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at FROM users
-WHERE user_identity_id = $1 LIMIT 1
-`
-
-func (q *Queries) GetUserByIdentityId(ctx context.Context, userIdentityID pgtype.Text) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByIdentityId, userIdentityID)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.UserIdentityID,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Role,
@@ -171,21 +145,19 @@ UPDATE users
 SET
   email = COALESCE($1, email),
   "role" = COALESCE($2, role),
-  user_identity_id = COALESCE($3, user_identity_id),
-  email_validated = COALESCE($4, email_validated),
-  is_active = COALESCE($5, is_active),
-  secret_token_key = COALESCE($6, secret_token_key),
-  password_hash = COALESCE($7, password_hash),
+  email_validated = COALESCE($3, email_validated),
+  is_active = COALESCE($4, is_active),
+  secret_token_key = COALESCE($5, secret_token_key),
+  password_hash = COALESCE($6, password_hash),
   updated_at = NOW()
 WHERE
-  id = $8
-RETURNING id, user_identity_id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at
+  id = $7
+RETURNING id, email, password_hash, role, email_validated, is_active, secret_token_key, created_at, updated_at
 `
 
 type UpdateUserParams struct {
 	Email          pgtype.Text `json:"email"`
 	Role           pgtype.Text `json:"role"`
-	UserIdentityID pgtype.Text `json:"user_identity_id"`
 	EmailValidated pgtype.Bool `json:"email_validated"`
 	IsActive       pgtype.Bool `json:"is_active"`
 	SecretTokenKey pgtype.Text `json:"secret_token_key"`
@@ -197,7 +169,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	row := q.db.QueryRow(ctx, updateUser,
 		arg.Email,
 		arg.Role,
-		arg.UserIdentityID,
 		arg.EmailValidated,
 		arg.IsActive,
 		arg.SecretTokenKey,
@@ -207,7 +178,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.UserIdentityID,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Role,

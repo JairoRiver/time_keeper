@@ -27,7 +27,6 @@ func createRandomUser(t *testing.T) User {
 	assert.Equal(t, userParam.SecretTokenKey, user.SecretTokenKey)
 	assert.NotEmpty(t, user.CreatedAt)
 	assert.Empty(t, user.UpdatedAt)
-	assert.Zero(t, user.UserIdentityID)
 
 	return user
 }
@@ -52,31 +51,9 @@ func TestGetUserById(t *testing.T) {
 	assert.Equal(t, user, getUser)
 }
 
-func TestGetByIdentityId(t *testing.T) {
-	user := createRandomUser(t)
-
-	userIdentityId := util.RandomString(12)
-	updateParams := UpdateUserParams{
-		UserIdentityID: pgtype.Text{String: userIdentityId, Valid: true},
-		ID:             user.ID,
-	}
-	testQueries.UpdateUser(context.Background(), updateParams)
-
-	getUser, err := testQueries.GetUserByIdentityId(context.Background(), pgtype.Text{String: userIdentityId, Valid: true})
-	assert.NoError(t, err)
-	assert.Equal(t, user.ID, getUser.ID)
-	assert.Equal(t, userIdentityId, getUser.UserIdentityID.String)
-	assert.Equal(t, user.Email, getUser.Email)
-	assert.Equal(t, user.Role, getUser.Role)
-	assert.False(t, getUser.EmailValidated)
-	assert.True(t, getUser.IsActive)
-	assert.Equal(t, user.SecretTokenKey, getUser.SecretTokenKey)
-}
-
 func TestUpdateUser(t *testing.T) {
 	user := createRandomUser(t)
 	newEmail := util.RandomEmail()
-	userIdentityId := util.RandomString(12)
 	newSecret := util.RandomString(64)
 	updateParams := UpdateUserParams{
 		ID:             user.ID,
@@ -84,7 +61,6 @@ func TestUpdateUser(t *testing.T) {
 		Email:          pgtype.Text{String: newEmail, Valid: true},
 		EmailValidated: pgtype.Bool{Bool: true, Valid: true},
 		IsActive:       pgtype.Bool{Bool: false, Valid: true},
-		UserIdentityID: pgtype.Text{String: userIdentityId, Valid: true},
 		SecretTokenKey: pgtype.Text{String: newSecret, Valid: true},
 	}
 	updatedUser, err := testQueries.UpdateUser(context.Background(), updateParams)
@@ -94,7 +70,6 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, util.UserAdminRole, updatedUser.Role)
 	assert.True(t, updatedUser.EmailValidated)
 	assert.False(t, updatedUser.IsActive)
-	assert.Equal(t, userIdentityId, updatedUser.UserIdentityID.String)
 	assert.Equal(t, newSecret, updatedUser.SecretTokenKey)
 }
 

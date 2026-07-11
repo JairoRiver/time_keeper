@@ -16,7 +16,6 @@ import (
 
 type UserResponse struct {
 	UserId         uuid.UUID
-	UserIdentityID string
 	Email          string
 	Role           string
 	EmailValidated bool
@@ -26,7 +25,6 @@ type UserResponse struct {
 func formatUserResponse(user db.User) UserResponse {
 	userResponse := UserResponse{
 		UserId:         user.ID,
-		UserIdentityID: user.UserIdentityID.String,
 		Email:          user.Email.String,
 		Role:           user.Role,
 		EmailValidated: user.EmailValidated,
@@ -97,23 +95,6 @@ func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserRespon
 		}
 		return UserResponse{}, fmt.Errorf("control GetUser Id type invalid Id type: %w", ErrInvalidIdType)
 
-	} else if params.GetType == util.GetUserTypeIndetityId {
-		if id, ok := params.Value.(string); ok {
-			if len(id) == 0 {
-				return UserResponse{}, fmt.Errorf("control GetUser IdentityId type id is empty: %w", ErrEmptyId)
-			}
-			user, err := c.repo.GetUserByIdentityId(ctx, pgtype.Text{String: id, Valid: true})
-			if err != nil {
-				if errors.Is(err, pgx.ErrNoRows) {
-					return UserResponse{}, fmt.Errorf("control GetUser IdentityId type: %w", ErrUserNotFound)
-				}
-				return UserResponse{}, fmt.Errorf("control GetUser IdentityId type repo GetUserByIdentityId error: %w", err)
-			}
-			userResponse := formatUserResponse(user)
-			return userResponse, nil
-		}
-		return UserResponse{}, fmt.Errorf("control GetUser IdentityId type invalid Id type: %w", ErrInvalidIdType)
-
 	} else if params.GetType == util.GetUserTypeEmail {
 		// validated if the param value are a string type
 		if email, ok := params.Value.(string); ok {
@@ -140,7 +121,6 @@ type UpdateUserParams struct {
 	Id             uuid.UUID
 	Email          string
 	Role           string
-	UserIdentityID string
 	EmailValidated pgtype.Bool
 	IsActive       pgtype.Bool
 	SecretKey      string
@@ -164,9 +144,6 @@ func (c *Control) UpdateUser(ctx context.Context, params UpdateUserParams) (User
 	}
 	if len(params.Role) > 0 {
 		dbUdateParam.Role = pgtype.Text{String: params.Role, Valid: true}
-	}
-	if len(params.UserIdentityID) > 0 {
-		dbUdateParam.UserIdentityID = pgtype.Text{String: params.UserIdentityID, Valid: true}
 	}
 	if len(params.SecretKey) > 0 {
 		dbUdateParam.SecretTokenKey = pgtype.Text{String: params.SecretKey, Valid: true}

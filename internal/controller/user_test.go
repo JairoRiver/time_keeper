@@ -63,48 +63,10 @@ func TestGetUser(t *testing.T) {
 	userTypeId, err := testControl.GetUser(context.Background(), idTypeParams)
 	assert.NoError(t, err)
 	assert.Equal(t, user.UserId, userTypeId.UserId)
-	assert.Equal(t, user.UserIdentityID, userTypeId.UserIdentityID)
 	assert.Equal(t, user.Email, userTypeId.Email)
 	assert.Equal(t, user.Role, userTypeId.Role)
 	assert.Equal(t, user.EmailValidated, userTypeId.EmailValidated)
 	assert.Equal(t, user.IsActive, userTypeId.IsActive)
-
-	//test get by identityId
-	//type id invalid: passing a non-string type triggers ErrInvalidIdType
-	identityTypeInvalidIdParams := GetUserParams{GetType: util.GetUserTypeIndetityId, Value: 12345}
-	userTypeIdentityInvalidId, err := testControl.GetUser(context.Background(), identityTypeInvalidIdParams)
-	assert.Zero(t, userTypeIdentityInvalidId)
-	assert.Error(t, err)
-	assert.True(t, errors.Is(err, ErrInvalidIdType))
-
-	//type id empty string
-	identityTypeZeroIdParams := GetUserParams{GetType: util.GetUserTypeIndetityId, Value: ""}
-	userTypeIdentityZeroId, err := testControl.GetUser(context.Background(), identityTypeZeroIdParams)
-	assert.Zero(t, userTypeIdentityZeroId)
-	assert.Error(t, err)
-	assert.True(t, errors.Is(err, ErrEmptyId))
-
-	//type identity id get user
-	identityId := util.RandomString(12)
-	updateUserParams := UpdateUserParams{Id: user.UserId, UserIdentityID: identityId}
-	updatedUser, err := testControl.UpdateUser(context.Background(), updateUserParams)
-	assert.NoError(t, err)
-	assert.Equal(t, user.UserId, updatedUser.UserId)
-	assert.Equal(t, identityId, updatedUser.UserIdentityID)
-	assert.Equal(t, user.Email, updatedUser.Email)
-	assert.Equal(t, user.Role, updatedUser.Role)
-	assert.Equal(t, user.EmailValidated, updatedUser.EmailValidated)
-	assert.Equal(t, user.IsActive, updatedUser.IsActive)
-
-	identityTypeParams := GetUserParams{GetType: util.GetUserTypeIndetityId, Value: identityId}
-	userTypeIdentity, err := testControl.GetUser(context.Background(), identityTypeParams)
-	assert.NoError(t, err)
-	assert.Equal(t, user.UserId, userTypeIdentity.UserId)
-	assert.Equal(t, identityId, userTypeIdentity.UserIdentityID)
-	assert.Equal(t, user.Email, userTypeIdentity.Email)
-	assert.Equal(t, user.Role, userTypeIdentity.Role)
-	assert.Equal(t, user.EmailValidated, userTypeIdentity.EmailValidated)
-	assert.Equal(t, user.IsActive, userTypeIdentity.IsActive)
 
 	//test get by email
 	//type id invalid email format
@@ -126,7 +88,6 @@ func TestGetUser(t *testing.T) {
 	userTypeEmail, err := testControl.GetUser(context.Background(), emailTypeParams)
 	assert.NoError(t, err)
 	assert.Equal(t, user.UserId, userTypeEmail.UserId)
-	assert.Equal(t, identityId, userTypeEmail.UserIdentityID) // identityId is now a string
 	assert.Equal(t, user.Email, userTypeEmail.Email)
 	assert.Equal(t, user.Role, userTypeEmail.Role)
 	assert.Equal(t, user.EmailValidated, userTypeEmail.EmailValidated)
@@ -145,14 +106,12 @@ func TestUpdateUser(t *testing.T) {
 	//update valid inputs
 	newEmail := util.RandomEmail()
 	newRole := util.UserAdminRole
-	newIdentityId := util.RandomString(12)
 	newSecretKey := util.RandomString(64)
 
 	updateParams := UpdateUserParams{
 		Id:             user.UserId,
 		Email:          newEmail,
 		Role:           newRole,
-		UserIdentityID: newIdentityId,
 		EmailValidated: pgtype.Bool{Bool: true, Valid: true},
 		IsActive:       pgtype.Bool{Bool: false, Valid: true},
 		SecretKey:      newSecretKey,
@@ -163,7 +122,6 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, user.UserId, updatedUser.UserId)
 	assert.Equal(t, newEmail, updatedUser.Email)
 	assert.Equal(t, newRole, updatedUser.Role)
-	assert.Equal(t, newIdentityId, updatedUser.UserIdentityID)
 	assert.True(t, updatedUser.EmailValidated)
 	assert.False(t, updatedUser.IsActive)
 
