@@ -16,11 +16,20 @@ import (
 )
 
 func postForm(h *Handler, handler echo.HandlerFunc, form url.Values) *httptest.ResponseRecorder {
+	return postFormAs(handler, form, nil)
+}
+
+// postFormAs posts a form. When userID is non-nil, an authenticated UserInfo is
+// injected into the context (as PageAuthMiddleware/CookieMiddleware would).
+func postFormAs(handler echo.HandlerFunc, form url.Values, userID *uuid.UUID) *httptest.ResponseRecorder {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(form.Encode()))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	if userID != nil {
+		addCookiePayload(c, *userID, util.UserDefauldRole)
+	}
 	_ = handler(c)
 	return rec
 }
@@ -118,6 +127,61 @@ func TestRegisterSubmit_EmailTaken(t *testing.T) {
 		"password":         {"sup3rsecret123"},
 		"password_confirm": {"sup3rsecret123"},
 	})
+
+	assert.Equal(t, http.StatusConflict, rec.Code)
+	assert.Contains(t, rec.Body.String(), "ya está registrado")
+	mockCtrl.AssertExpectations(t)
+}
+
+func TestLinkSubmit_Success(t *testing.T) {
+	mockCtrl := new(MockController)
+	h := newTestHandler(mockCtrl)
+	userID := uuid.New()
+
+	mockCtrl.On("SetPassword", mock.Anything, controller.SetPasswordParams{
+		UserId: userID, Email: "anon@test.com", Password: "sup3rsecret123",
+	}).Return(controller.UserResponse{UserId: userID}, nil)
+
+	rec := postFormAs(h.LinkSubmit, url.Values{
+		"email":            {"anon@test.com"},
+		"password":         {"sup3rsecret123"},
+		"password_confirm": {"sup3rsecret123"},
+	}, &userID)
+
+	assert.Equal(t, http.StatusSeeOther, rec.Code)
+	assert.Equal(t, "/registro", rec.Header().Get("Location"))
+	mockCtrl.AssertExpectations(t)
+}
+
+func TestLinkSubmit_PasswordMismatch(t *testing.T) {
+	mockCtrl := new(MockController)
+	h := newTestHandler(mockCtrl)
+	userID := uuid.New()
+
+	rec := postFormAs(h.LinkSubmit, url.Values{
+		"email":            {"anon@test.com"},
+		"password":         {"sup3rsecret123"},
+		"password_confirm": {"nope1234"},
+	}, &userID)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "no coinciden")
+	mockCtrl.AssertNotCalled(t, "SetPassword", mock.Anything, mock.Anything)
+}
+
+func TestLinkSubmit_EmailTaken(t *testing.T) {
+	mockCtrl := new(MockController)
+	h := newTestHandler(mockCtrl)
+	userID := uuid.New()
+
+	mockCtrl.On("SetPassword", mock.Anything, mock.Anything).
+		Return(controller.UserResponse{}, controller.ErrEmailTaken)
+
+	rec := postFormAs(h.LinkSubmit, url.Values{
+		"email":            {"taken@test.com"},
+		"password":         {"sup3rsecret123"},
+		"password_confirm": {"sup3rsecret123"},
+	}, &userID)
 
 	assert.Equal(t, http.StatusConflict, rec.Code)
 	assert.Contains(t, rec.Body.String(), "ya está registrado")

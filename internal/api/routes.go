@@ -105,12 +105,12 @@ func (server *Server) setupRouter() {
 	e.POST("/auth/login", server.handler.LoginSubmit, authRateLimiter)
 	e.GET("/auth/register", server.handler.RegisterPage)
 	e.POST("/auth/register", server.handler.RegisterSubmit, authRateLimiter)
+	// Link an anonymous account to email/password credentials.
+	e.GET("/auth/link", server.handler.LinkPage, server.handler.PageAuthMiddleware)
+	e.POST("/auth/link", server.handler.LinkSubmit, server.handler.PageAuthMiddleware, authRateLimiter)
 	// Logto OIDC (legacy — removed in TK-14)
 	e.GET("/auth/callback", server.handler.Callback)
 	e.GET("/auth/logout", server.handler.Logout)
-	// Per-route middleware (not an empty-prefix group) to avoid a global "/*"
-	// catch-all that would shadow the 404 handler for unknown URLs.
-	e.GET("/auth/link", server.handler.LinkAccount, server.handler.CookieMiddleware)
 
 	// User
 	api.POST("/user", server.handler.CreateUser, authRateLimiter)

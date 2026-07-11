@@ -117,3 +117,44 @@ func (h *Handler) RegisterSubmit(c echo.Context) error {
 	}
 	return c.Redirect(http.StatusSeeOther, redirectDashboard)
 }
+
+// LinkPage renders the form for an anonymous user to attach email/password
+// credentials to their current session. Requires PageAuthMiddleware.
+func (h *Handler) LinkPage(c echo.Context) error {
+	return renderPage(c, http.StatusOK, pages.Link("", ""))
+}
+
+// LinkSubmit attaches email/password credentials to the current user, keeping
+// the same user id (and therefore their existing time entries). The active
+// session cookie stays valid. Requires PageAuthMiddleware.
+func (h *Handler) LinkSubmit(c echo.Context) error {
+	userInfo := c.Get(util.RefreshTokenName).(UserInfo)
+	email := strings.TrimSpace(c.FormValue("email"))
+	pass := c.FormValue("password")
+	confirm := c.FormValue("password_confirm")
+	ctx := context.Background()
+
+	if pass != confirm {
+		return renderPage(c, http.StatusBadRequest, pages.Link(email, "Las contraseñas no coinciden."))
+	}
+
+	_, err := h.ctrl.SetPassword(ctx, controller.SetPasswordParams{
+		UserId:   userInfo.UserId,
+		Email:    email,
+		Password: pass,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, controller.ErrEmailTaken):
+			return renderPage(c, http.StatusConflict, pages.Link(email, "Ese email ya está registrado."))
+		case errors.Is(err, controller.ErrEmptyEmail):
+			return renderPage(c, http.StatusBadRequest, pages.Link(email, "Introduce un email válido."))
+		case errors.Is(err, password.ErrPasswordTooShort), errors.Is(err, password.ErrPasswordTooLong):
+			return renderPage(c, http.StatusBadRequest, pages.Link(email, "La contraseña debe tener entre 8 y 72 caracteres."))
+		default:
+			h.log.Error().Err(err).Msg("LinkSubmit: SetPassword error")
+			return renderPage(c, http.StatusInternalServerError, pages.Link(email, genericAuthError))
+		}
+	}
+	return c.Redirect(http.StatusSeeOther, redirectDashboard)
+}

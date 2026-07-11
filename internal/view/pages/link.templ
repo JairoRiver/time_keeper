@@ -1,0 +1,26 @@
+package pages
+
+import "github.com/JairoRiver/time_keeper/internal/view/layout"
+
+// Link renders the form for an anonymous user to attach email/password
+// credentials to their current session, keeping their existing entries.
+templ Link(email string, errMsg string) {
+	@layout.Base("Crear cuenta") {
+		<div class="flex min-h-screen flex-col bg-gradient-to-b from-slate-50 via-white to-indigo-50/40">
+			@layout.Header(true, false)
+			<main class="flex flex-1 items-center justify-center px-6 py-12">
+				@authCard("Crea tu cuenta", "Guarda tu email y contraseña para no perder tus registros") {
+					<form method="POST" action="/auth/link" class="flex flex-col gap-4">
+						if errMsg != "" {
+							@authError(errMsg)
+						}
+						@authField("email", "email", "Email", "tu@email.com", email, "email")
+						@authField("password", "password", "Contraseña", "Mínimo 8 caracteres", "", "new-password")
+						@authField("password", "password_confirm", "Repite la contraseña", "••••••••", "", "new-password")
+						@authSubmit("Guardar cuenta")
+					</form>
+				}
+			</main>
+		</div>
+	}
+}
