@@ -105,6 +105,30 @@ func (m *MockController) ListEntryTimeByDateRange(ctx context.Context, params co
 	return nil, args.Error(1)
 }
 
+func (m *MockController) RegisterUser(ctx context.Context, params controller.RegisterUserParams) (controller.UserResponse, error) {
+	args := m.Called(ctx, params)
+	if args.Get(0) != nil {
+		return args.Get(0).(controller.UserResponse), args.Error(1)
+	}
+	return controller.UserResponse{}, args.Error(1)
+}
+
+func (m *MockController) AuthenticateUser(ctx context.Context, params controller.AuthenticateUserParams) (controller.UserResponse, error) {
+	args := m.Called(ctx, params)
+	if args.Get(0) != nil {
+		return args.Get(0).(controller.UserResponse), args.Error(1)
+	}
+	return controller.UserResponse{}, args.Error(1)
+}
+
+func (m *MockController) SetPassword(ctx context.Context, params controller.SetPasswordParams) (controller.UserResponse, error) {
+	args := m.Called(ctx, params)
+	if args.Get(0) != nil {
+		return args.Get(0).(controller.UserResponse), args.Error(1)
+	}
+	return controller.UserResponse{}, args.Error(1)
+}
+
 // ----------------------- HELPERS ----------------------- //
 
 // newTestHandler returns a Handler with a mocked Controller.

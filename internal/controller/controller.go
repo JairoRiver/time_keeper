@@ -27,7 +27,17 @@ var ErrEmptyId = errors.New("error id are empty")
 var ErrEmptyEmail = errors.New("error email are empty")
 var ErrUserNotFound = errors.New("user not found")
 
+// ErrEmailTaken is returned when registering/linking an email that another user
+// already owns (unique index violation).
+var ErrEmailTaken = errors.New("email already registered")
+
+// ErrInvalidCredentials is the single error returned for any authentication
+// failure (unknown email, wrong password, inactive user) so callers cannot
+// distinguish the cases and enumerate accounts.
+var ErrInvalidCredentials = errors.New("invalid credentials")
+
 type Controller interface {
+	AuthenticateUser(ctx context.Context, params AuthenticateUserParams) (UserResponse, error)
 	CreateEntryTime(ctx context.Context, params CreateEntryTimeParams) (EntryTimeResponse, error)
 	CreateUser(ctx context.Context, params CreateUserParam) (UserResponse, error)
 	DeleteEntryTime(ctx context.Context, id uuid.UUID) (EntryTimeResponse, error)
@@ -38,6 +48,8 @@ type Controller interface {
 	GetUserSecretKey(ctx context.Context, userId uuid.UUID) (UserKeyResponse, error)
 	ListEntryTime(ctx context.Context, params ListEntryTimeParams) ([]EntryTimeResponse, error)
 	ListEntryTimeByDateRange(ctx context.Context, params ListEntryTimeByDateRangeParams) ([]EntryTimeResponse, error)
+	RegisterUser(ctx context.Context, params RegisterUserParams) (UserResponse, error)
+	SetPassword(ctx context.Context, params SetPasswordParams) (UserResponse, error)
 	StopTimer(ctx context.Context, userId uuid.UUID) (EntryTimeResponse, error)
 	UpdateEntryTime(ctx context.Context, params UpdateEntryTimeParams) (EntryTimeResponse, error)
 	UpdateUser(ctx context.Context, params UpdateUserParams) (UserResponse, error)

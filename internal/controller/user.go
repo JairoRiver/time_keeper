@@ -7,8 +7,10 @@ import (
 
 	db "github.com/JairoRiver/time_keeper/internal/repository/db/sqlc"
 	"github.com/JairoRiver/time_keeper/internal/util"
+	"github.com/JairoRiver/time_keeper/pkg/password"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -194,4 +196,136 @@ func (c *Control) GetUserSecretKey(ctx context.Context, userId uuid.UUID) (UserK
 	}
 	userResponse := UserKeyResponse{UserId: user.ID, SecretKey: user.SecretTokenKey}
 	return userResponse, nil
+}
+
+// dummyHash keeps AuthenticateUser's timing roughly constant when the email
+// does not exist or has no local password, mitigating account enumeration.
+var dummyHash, _ = password.Hash("timing-equalizer-not-a-real-password")
+
+// isUniqueViolation reports whether err is a Postgres unique-constraint error
+// (SQLSTATE 23505), e.g. the users_email_key index firing.
+func isUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "23505"
+}
+
+// Register user control method
+type RegisterUserParams struct {
+	Email    string
+	Password string
+	Role     string
+}
+
+// RegisterUser creates a user with an email/password credential. Returns
+// ErrEmailTaken if the email is already registered.
+func (c *Control) RegisterUser(ctx context.Context, params RegisterUserParams) (UserResponse, error) {
+	if len(params.Email) == 0 {
+		return UserResponse{}, ErrEmptyEmail
+	}
+	if params.Role != util.UserAdminRole && params.Role != util.UserDefauldRole {
+		return UserResponse{}, fmt.Errorf("control RegisterUser invalid role error: %w", ErrInvalidRoleValue)
+	}
+	if err := password.Validate(params.Password); err != nil {
+		return UserResponse{}, err
+	}
+
+	hash, err := password.Hash(params.Password)
+	if err != nil {
+		return UserResponse{}, fmt.Errorf("control RegisterUser hash password error: %w", err)
+	}
+	secretKey, err := util.SecureRandomString(64)
+	if err != nil {
+		return UserResponse{}, fmt.Errorf("control RegisterUser generate secret key error: %w", err)
+	}
+
+	user, err := c.repo.CreateUser(ctx, db.CreateUserParams{
+		Email:          pgtype.Text{String: params.Email, Valid: true},
+		Role:           params.Role,
+		SecretTokenKey: secretKey,
+		PasswordHash:   pgtype.Text{String: hash, Valid: true},
+	})
+	if err != nil {
+		if isUniqueViolation(err) {
+			return UserResponse{}, ErrEmailTaken
+		}
+		return UserResponse{}, fmt.Errorf("control RegisterUser repo CreateUser error: %w", err)
+	}
+	return formatUserResponse(user), nil
+}
+
+// Authenticate user control method
+type AuthenticateUserParams struct {
+	Email    string
+	Password string
+}
+
+// AuthenticateUser verifies an email/password pair. Any failure (unknown email,
+// wrong password, missing local password, inactive user) returns
+// ErrInvalidCredentials, and equal work is always spent so the caller cannot
+// distinguish the cases by timing.
+func (c *Control) AuthenticateUser(ctx context.Context, params AuthenticateUserParams) (UserResponse, error) {
+	creds, err := c.repo.GetUserCredentialsByEmail(ctx, params.Email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			_, _ = password.Verify(params.Password, dummyHash)
+			return UserResponse{}, ErrInvalidCredentials
+		}
+		return UserResponse{}, fmt.Errorf("control AuthenticateUser GetUserCredentialsByEmail error: %w", err)
+	}
+
+	// User exists but has no local password (anonymous or Logto-only account).
+	if !creds.PasswordHash.Valid {
+		_, _ = password.Verify(params.Password, dummyHash)
+		return UserResponse{}, ErrInvalidCredentials
+	}
+
+	ok, err := password.Verify(params.Password, creds.PasswordHash.String)
+	if err != nil {
+		return UserResponse{}, fmt.Errorf("control AuthenticateUser verify password error: %w", err)
+	}
+	if !ok || !creds.IsActive {
+		return UserResponse{}, ErrInvalidCredentials
+	}
+
+	return c.GetUser(ctx, GetUserParams{GetType: util.GetUserTypeId, Value: creds.ID})
+}
+
+// Set password control method
+type SetPasswordParams struct {
+	UserId   uuid.UUID
+	Email    string
+	Password string
+}
+
+// SetPassword attaches an email/password credential to an existing user (e.g. an
+// anonymous user turning their session into a real account). Returns
+// ErrEmailTaken if the email belongs to another user.
+func (c *Control) SetPassword(ctx context.Context, params SetPasswordParams) (UserResponse, error) {
+	if params.UserId == uuid.Nil {
+		return UserResponse{}, ErrEmptyId
+	}
+	if len(params.Email) == 0 {
+		return UserResponse{}, ErrEmptyEmail
+	}
+	if err := password.Validate(params.Password); err != nil {
+		return UserResponse{}, err
+	}
+
+	hash, err := password.Hash(params.Password)
+	if err != nil {
+		return UserResponse{}, fmt.Errorf("control SetPassword hash password error: %w", err)
+	}
+
+	user, err := c.repo.UpdateUser(ctx, db.UpdateUserParams{
+		ID:           params.UserId,
+		Email:        pgtype.Text{String: params.Email, Valid: true},
+		PasswordHash: pgtype.Text{String: hash, Valid: true},
+	})
+	if err != nil {
+		if isUniqueViolation(err) {
+			return UserResponse{}, ErrEmailTaken
+		}
+		return UserResponse{}, fmt.Errorf("control SetPassword repo UpdateUser error: %w", err)
+	}
+	return formatUserResponse(user), nil
 }
