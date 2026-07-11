@@ -9,7 +9,6 @@ import (
 	"github.com/JairoRiver/time_keeper/internal/controller"
 	db "github.com/JairoRiver/time_keeper/internal/repository/db/sqlc"
 	"github.com/JairoRiver/time_keeper/internal/util"
-	logtoClient "github.com/JairoRiver/time_keeper/pkg/identity/logto"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -41,15 +40,9 @@ func NewServerCommand() *cobra.Command {
 			}
 			logger.Info().Msg("database pool created")
 
-			idp, err := logtoClient.New(ctx, config)
-			if err != nil {
-				log.Fatal().Err(err).Msg("cannot connect to identity provider")
-			}
-			logger.Info().Msg("identity provider ready")
-
 			querier := db.New(connPool)
 			control := controller.New(querier)
-			h := handler.New(control, idp, logger, config.Server.SecureCookies)
+			h := handler.New(control, logger, config.Server.SecureCookies)
 			server := api.New(h, &logger, config.Server.EnableSwagger)
 
 			logger.Info().Msgf("starting server at %s", config.Server.Address)

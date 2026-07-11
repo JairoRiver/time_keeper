@@ -1,5 +1,8 @@
 CREATE TABLE "users" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- DEPRECATED: external identity provider (Logto) subject. Kept for historical
+  -- data; unused since auth moved to local email/password. Drop in a future
+  -- migration once no rows rely on it.
   "user_identity_id" varchar,
   "email" varchar,
   "password_hash" varchar,

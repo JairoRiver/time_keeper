@@ -6,10 +6,10 @@ A full-stack time tracking application. Log in, create time entries with tags, a
 
 **Backend**
 - Go 1.23 · Echo v4 · PostgreSQL 16
-- JWT authentication · SQLC · golang-migrate · Swagger
+- Email/password auth (argon2id) · JWT sessions · SQLC · golang-migrate · Swagger
 
 **Frontend**
-- Astro 5 · Tailwind CSS v4 · Zod
+- Server-rendered templ · Tailwind CSS v4
 
 **Deployment**
 - Podman · Podman Compose
@@ -28,11 +28,12 @@ The easiest way to run the full stack:
 podman compose -f deploy/docker-compose/quickstart.yaml up --build
 ```
 
-| Service  | URL                          |
-|----------|------------------------------|
-| Backend  | http://localhost:8080        |
-| Frontend | http://localhost:4321        |
-| Swagger  | http://localhost:8080/api/v1/swagger/ |
+The app serves both the API and the web UI on a single port.
+
+| Service | URL                          |
+|---------|------------------------------|
+| Web UI  | http://localhost:8080        |
+| Swagger | http://localhost:8080/api/v1/swagger/ (dev only) |
 
 ## Manual Setup
 
@@ -66,16 +67,12 @@ npm run dev
 
 ```yaml
 database:
-  db_sorce: postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable
+  db_source: postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable
   db_name: time_keeper
 server:
   address: 0.0.0.0:8080
-```
-
-`web/.env`:
-
-```
-VITE_API_BASE_URL=http://localhost:8080
+  secure_cookies: ${SECURE_COOKIES:-false}   # set true behind HTTPS in prod
+  enable_swagger: ${ENABLE_SWAGGER:-true}    # disable in prod
 ```
 
 ## API Reference

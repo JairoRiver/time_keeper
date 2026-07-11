@@ -5,17 +5,53 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/JairoRiver/time_keeper/internal/controller"
 	"github.com/JairoRiver/time_keeper/internal/util"
 	"github.com/JairoRiver/time_keeper/internal/view/pages"
 	"github.com/JairoRiver/time_keeper/pkg/password"
+	"github.com/JairoRiver/time_keeper/pkg/token"
 	"github.com/a-h/templ"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // genericAuthError is shown for unexpected server-side failures during auth.
 const genericAuthError = "Algo salió mal. Inténtalo de nuevo."
+
+// redirectDashboard is where users land after a successful login/register.
+const redirectDashboard = "/registro"
+
+// issueRefreshCookie mints a refresh token and sets it as an HttpOnly cookie.
+func issueRefreshCookie(h *Handler, c echo.Context, ctx context.Context, userId uuid.UUID, role string) error {
+	secretKey, err := h.ctrl.GetUserSecretKey(ctx, userId)
+	if err != nil {
+		return err
+	}
+	maker, err := token.NewJWTMaker(secretKey.SecretKey)
+	if err != nil {
+		return err
+	}
+	refreshToken, _, err := maker.CreateToken(userId, role, refreshTokenDuration)
+	if err != nil {
+		return err
+	}
+	c.SetCookie(h.sessionCookie(refreshToken))
+	return nil
+}
+
+// clearCookie expires a cookie immediately. Path must match the one used when
+// setting the cookie.
+func clearCookie(c echo.Context, name string) {
+	c.SetCookie(&http.Cookie{
+		Name:    name,
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+		MaxAge:  -1,
+	})
+}
 
 // renderPage renders a templ component with an explicit HTTP status. WriteHeader
 // must be called on the echo Response (not the raw Writer) so the status is

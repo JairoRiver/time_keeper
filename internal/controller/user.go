@@ -273,7 +273,7 @@ func (c *Control) AuthenticateUser(ctx context.Context, params AuthenticateUserP
 		return UserResponse{}, fmt.Errorf("control AuthenticateUser GetUserCredentialsByEmail error: %w", err)
 	}
 
-	// User exists but has no local password (anonymous or Logto-only account).
+	// User exists but has no local password (anonymous account).
 	if !creds.PasswordHash.Valid {
 		_, _ = password.Verify(params.Password, dummyHash)
 		return UserResponse{}, ErrInvalidCredentials

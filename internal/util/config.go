@@ -18,12 +18,6 @@ type Config struct {
 		SecureCookies bool   `yaml:"secure_cookies"`
 		EnableSwagger bool   `yaml:"enable_swagger"`
 	} `yaml:"server"`
-	Logto struct {
-		Endpoint    string `yaml:"endpoint"`
-		AppID       string `yaml:"app_id"`
-		AppSecret   string `yaml:"app_secret"`
-		CallbackURL string `yaml:"callback_url"`
-	} `yaml:"logto"`
 }
 
 // expandEnv replaces ${VAR} and ${VAR:-default} in s using environment variables.

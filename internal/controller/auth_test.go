@@ -91,7 +91,7 @@ func TestAuthenticateUserUnknownEmail(t *testing.T) {
 }
 
 func TestAuthenticateUserNoLocalPassword(t *testing.T) {
-	// A user with an email but no password_hash (e.g. anonymous/Logto) must not
+	// A user with an email but no password_hash (e.g. anonymous) must not
 	// be able to authenticate with a password.
 	email := util.RandomEmail()
 	_, err := testControl.CreateUser(context.Background(), CreateUserParam{

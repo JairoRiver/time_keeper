@@ -55,11 +55,11 @@ tasks:
 
   # ── Dev workflow ────────────────────────────────────────────────────────────
   services:
-    desc: start external services via compose (postgres + logto)
+    desc: start external services via compose (postgres)
     cmds:
       # Stop any standalone postgres container that would conflict on port 5432
       - podman stop time_keeper 2>/dev/null || true
-      - podman compose -f $COMPOSE_FILE up -d postgresd logto-db logto logto-seed
+      - podman compose -f $COMPOSE_FILE up -d postgresd
 
   services-down:
     desc: stop external services (data volumes are preserved)
@@ -85,7 +85,7 @@ tasks:
 
   # ── Full compose ────────────────────────────────────────────────────────────
   compose:
-    desc: launch full stack via podman compose (postgres + logto + app)
+    desc: launch full stack via podman compose (postgres + app)
     cmds:
       - podman compose -f $COMPOSE_FILE up --build
 

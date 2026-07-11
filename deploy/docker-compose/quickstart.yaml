@@ -50,57 +50,8 @@ services:
     networks:
       - intranet
 
-  # ── Logto seed (runs once, always exits 0) ────────────────────────────────
-  logto-seed:
-    image: docker.io/svhd/logto:latest
-    depends_on:
-      logto-db:
-        condition: service_healthy
-    environment:
-      - DB_URL=postgresql://logto:logto@logto-db:5432/logto
-    entrypoint: ["sh", "-c", "npx @logto/cli db seed --db-url $${DB_URL}; exit 0"]
-    restart: "no"
-    networks:
-      - intranet
-
-  # ── Logto ──────────────────────────────────────────────────────────────────
-  logto:
-    image: docker.io/svhd/logto:latest
-    ports:
-      - "3001:3001"   # OIDC / app
-      - "3002:3002"   # admin console
-    depends_on:
-      logto-seed:
-        condition: service_completed_successfully
-    environment:
-      - TRUST_PROXY_HEADER=1
-      - DB_URL=postgresql://logto:logto@logto-db:5432/logto
-      - ENDPOINT=http://localhost:3001
-      - ADMIN_ENDPOINT=http://localhost:3002
-    networks:
-      - intranet
-
-  # ── Logto database ─────────────────────────────────────────────────────────
-  logto-db:
-    image: docker.io/library/postgres:16-alpine
-    volumes:
-      - logto_db_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=logto
-      - POSTGRES_PASSWORD=logto
-      - POSTGRES_DB=logto
-    healthcheck:
-      test: pg_isready -U logto -d logto
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    networks:
-      - intranet
-
 networks:
   intranet:
 
 volumes:
   postgres_data:
-  logto_db_data:

@@ -7,22 +7,20 @@ import (
 
 	"github.com/JairoRiver/time_keeper/internal/controller"
 	"github.com/JairoRiver/time_keeper/internal/util"
-	"github.com/JairoRiver/time_keeper/pkg/identity"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 )
 
-// Handler holds the controller and identity provider dependencies.
+// Handler holds the controller dependency and request-scoped config.
 type Handler struct {
 	ctrl          controller.Controller
-	identity      identity.Provider
 	log           zerolog.Logger
 	secureCookies bool
 }
 
-func New(ctrl controller.Controller, idp identity.Provider, log zerolog.Logger, secureCookies bool) *Handler {
-	return &Handler{ctrl: ctrl, identity: idp, log: log, secureCookies: secureCookies}
+func New(ctrl controller.Controller, log zerolog.Logger, secureCookies bool) *Handler {
+	return &Handler{ctrl: ctrl, log: log, secureCookies: secureCookies}
 }
 
 // sessionCookie builds the refresh-token session cookie with the configured

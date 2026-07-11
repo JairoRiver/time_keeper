@@ -108,8 +108,6 @@ func (server *Server) setupRouter() {
 	// Link an anonymous account to email/password credentials.
 	e.GET("/auth/link", server.handler.LinkPage, server.handler.PageAuthMiddleware)
 	e.POST("/auth/link", server.handler.LinkSubmit, server.handler.PageAuthMiddleware, authRateLimiter)
-	// Logto OIDC (legacy — removed in TK-14)
-	e.GET("/auth/callback", server.handler.Callback)
 	e.GET("/auth/logout", server.handler.Logout)
 
 	// User
