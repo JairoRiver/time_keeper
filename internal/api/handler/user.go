@@ -42,29 +42,29 @@ func (h *Handler) CreateUser(c echo.Context) error {
 	ctx := context.Background()
 	user, err := h.ctrl.CreateUser(ctx, params)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	//create jwt
 	secretKey, err := h.ctrl.GetUserSecretKey(ctx, user.UserId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	tokenMaker, err := token.NewJWTMaker(secretKey.SecretKey)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	accessToken, payload, err := tokenMaker.CreateToken(user.UserId, user.Role, accessTokenDuration)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	//create cookies with refresh token
 	refreshToken, _, err := tokenMaker.CreateToken(user.UserId, user.Role, refreshTokenDuration)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 	c.SetCookie(h.sessionCookie(refreshToken))
 
@@ -83,7 +83,7 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 	payloadCookie := c.Get(util.RefreshTokenName)
 	userInfo, ok := payloadCookie.(UserInfo)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, errors.New("error CreateEntryTime cant get payload from context"))
+		return h.internalError(c, errors.New("RefreshToken cant get payload from context"))
 	}
 
 	//get user info
@@ -94,29 +94,29 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 	}
 	user, err := h.ctrl.GetUser(ctx, params)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	//create jwt
 	secretKey, err := h.ctrl.GetUserSecretKey(ctx, userInfo.UserId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	tokenMaker, err := token.NewJWTMaker(secretKey.SecretKey)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	accessToken, payload, err := tokenMaker.CreateToken(userInfo.UserId, userInfo.Role, accessTokenDuration)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	//create cookies with refresh token
 	refreshToken, _, err := tokenMaker.CreateToken(userInfo.UserId, userInfo.Role, refreshTokenDuration)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 	c.SetCookie(h.sessionCookie(refreshToken))
 

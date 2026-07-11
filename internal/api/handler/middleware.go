@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -31,34 +30,33 @@ func (h *Handler) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		authorizationHeader := ctx.Request().Header.Get(authorizationHeaderKey)
 
 		if len(authorizationHeader) == 0 {
-			err := errors.New("authorization header is not provided")
-			return ctx.JSON(http.StatusUnauthorized, err)
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("authorization header is not provided"))
 		}
 
 		fields := strings.Fields(authorizationHeader)
 		if len(fields) < 2 {
-			err := errors.New("invalid authorization header format")
-			return ctx.JSON(http.StatusUnauthorized, err)
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("invalid authorization header format"))
 		}
 
 		authorizationType := strings.ToLower(fields[0])
 		if authorizationType != authorizationTypeBearer {
-			err := fmt.Errorf("unsupported authorization type %s", authorizationType)
-			return ctx.JSON(http.StatusUnauthorized, err)
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("unsupported authorization type"))
 		}
 
 		accessToken := fields[1]
 
-		//get userId from token
+		//get userId from token (a malformed token is a client error, not a 500)
 		userId, err := getUserIdFromToken(accessToken)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, fmt.Errorf("authMiddleware error geting userId, error: %w", err))
+			h.log.Warn().Err(err).Msg("authMiddleware: parse token failed")
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("invalid or expired token"))
 		}
 
 		//Verify token
 		payload, err := auxVerifyToken(h, userId, accessToken)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, err)
+			h.log.Warn().Err(err).Msg("authMiddleware: verify token failed")
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("invalid or expired token"))
 		}
 
 		userInfo := UserInfo{
@@ -80,7 +78,7 @@ func (h *Handler) CookieMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie(util.RefreshTokenName)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, err)
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("authentication required"))
 		}
 
 		refreshTokenInfo := CookieInfo{
@@ -88,16 +86,18 @@ func (h *Handler) CookieMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			Value: cookie.Value,
 		}
 
-		//get userId from token
+		//get userId from token (a malformed token is a client error, not a 500)
 		userId, err := getUserIdFromToken(refreshTokenInfo.Value)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, fmt.Errorf("cookieMiddleware error geting userId, error: %w", err))
+			h.log.Warn().Err(err).Msg("cookieMiddleware: parse token failed")
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("invalid or expired token"))
 		}
 
 		//Verify token
 		payload, err := auxVerifyToken(h, userId, refreshTokenInfo.Value)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, err)
+			h.log.Warn().Err(err).Msg("cookieMiddleware: verify token failed")
+			return ctx.JSON(http.StatusUnauthorized, errorResponse("invalid or expired token"))
 		}
 
 		userInfo := UserInfo{

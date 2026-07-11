@@ -48,14 +48,14 @@ func (h *Handler) CreateEntryTime(c echo.Context) error {
 	var entryTimeParams CreateEntryTimeParams
 	err := c.Bind(&entryTimeParams)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, errorResponse("invalid request"))
 	}
 
 	// Get userId from contex
 	payload := c.Get(authorizationPayloadKey)
 	userInfo, ok := payload.(UserInfo)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, errors.New("error CreateEntryTime cant get payload from context"))
+		return h.internalError(c, errors.New("error CreateEntryTime cant get payload from context"))
 	}
 
 	entryTimeControllerParams := controller.CreateEntryTimeParams{
@@ -67,7 +67,7 @@ func (h *Handler) CreateEntryTime(c echo.Context) error {
 	ctx := context.Background()
 	entryTime, err := h.ctrl.CreateEntryTime(ctx, entryTimeControllerParams)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	response := parseEntryTimeResponse(entryTime)
@@ -92,33 +92,33 @@ func (h *Handler) GetEntryTime(c echo.Context) error {
 	var entryTimeParams GetEntryTimeParam
 	err := c.Bind(&entryTimeParams)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, errorResponse("invalid request"))
 	}
 
 	// Get userId from contex
 	payload := c.Get(authorizationPayloadKey)
 	userInfo, ok := payload.(UserInfo)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, errors.New("error GetEntryTime cant get payload from context"))
+		return h.internalError(c, errors.New("error GetEntryTime cant get payload from context"))
 	}
 
 	ctx := context.Background()
 	entryTime, err := h.ctrl.GetEntryTime(ctx, entryTimeParams.Id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	// Validate if the entry time, userId has the same user Id from the token
 	valid, err := validateEntryTimeOwnership(h, userInfo.UserId, entryTime.ID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return c.JSON(http.StatusNotFound, errors.New("error not found entry time"))
+			return c.JSON(http.StatusNotFound, errorResponse("entry time not found"))
 		}
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	if !valid {
-		return c.JSON(http.StatusUnauthorized, errors.New("userId not valid"))
+		return c.JSON(http.StatusUnauthorized, errorResponse("access denied"))
 	}
 
 	response := parseEntryTimeResponse(entryTime)
@@ -144,14 +144,14 @@ func (h *Handler) ListEntryTime(c echo.Context) error {
 	var listEntryTimeParams ListEntryTimeParams
 	err := c.Bind(&listEntryTimeParams)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, errorResponse("invalid request"))
 	}
 
 	// Get userId from contex
 	payload := c.Get(authorizationPayloadKey)
 	userInfo, ok := payload.(UserInfo)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, errors.New("error ListEntryTime cant get payload from context"))
+		return h.internalError(c, errors.New("error ListEntryTime cant get payload from context"))
 	}
 
 	params := controller.ListEntryTimeParams{
@@ -161,7 +161,7 @@ func (h *Handler) ListEntryTime(c echo.Context) error {
 	ctx := context.Background()
 	listEntries, err := h.ctrl.ListEntryTime(ctx, params)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	var response []EntryTimeResponse
@@ -194,26 +194,26 @@ func (h *Handler) UpdateEntryTime(c echo.Context) error {
 	var updateEntryTimeParams UpdateEntryTimeParams
 	err := c.Bind(&updateEntryTimeParams)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, errorResponse("invalid request"))
 	}
 
 	// Get userId from contex
 	payload := c.Get(authorizationPayloadKey)
 	userInfo, ok := payload.(UserInfo)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, errors.New("error UpdateEntryTime cant get payload from context"))
+		return h.internalError(c, errors.New("error UpdateEntryTime cant get payload from context"))
 	}
 	// Validate if the entry time, userId has the same user Id from the token
 	valid, err := validateEntryTimeOwnership(h, userInfo.UserId, updateEntryTimeParams.Id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return c.JSON(http.StatusNotFound, errors.New("error not found entry time"))
+			return c.JSON(http.StatusNotFound, errorResponse("entry time not found"))
 		}
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	if !valid {
-		return c.JSON(http.StatusUnauthorized, errors.New("userId not valid"))
+		return c.JSON(http.StatusUnauthorized, errorResponse("access denied"))
 	}
 
 	params := controller.UpdateEntryTimeParams{
@@ -225,7 +225,7 @@ func (h *Handler) UpdateEntryTime(c echo.Context) error {
 	ctx := context.Background()
 	entryTime, err := h.ctrl.UpdateEntryTime(ctx, params)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	response := parseEntryTimeResponse(entryTime)
@@ -250,32 +250,32 @@ func (h *Handler) DeleteEntryTime(c echo.Context) error {
 	var deleteEntryTimeParams DeleteEntryTimeParams
 	err := c.Bind(&deleteEntryTimeParams)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, errorResponse("invalid request"))
 	}
 
 	// Get userId from contex
 	payload := c.Get(authorizationPayloadKey)
 	userInfo, ok := payload.(UserInfo)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, errors.New("error DeleteEntryTime cant get payload from context"))
+		return h.internalError(c, errors.New("error DeleteEntryTime cant get payload from context"))
 	}
 	// Validate if the entry time, userId has the same user Id from the token
 	valid, err := validateEntryTimeOwnership(h, userInfo.UserId, deleteEntryTimeParams.Id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return c.JSON(http.StatusNotFound, errors.New("error not found entry time"))
+			return c.JSON(http.StatusNotFound, errorResponse("entry time not found"))
 		}
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	if !valid {
-		return c.JSON(http.StatusUnauthorized, errors.New("userId not valid"))
+		return c.JSON(http.StatusUnauthorized, errorResponse("access denied"))
 	}
 
 	ctx := context.Background()
 	entryTime, err := h.ctrl.DeleteEntryTime(ctx, deleteEntryTimeParams.Id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	response := parseEntryTimeResponse(entryTime)

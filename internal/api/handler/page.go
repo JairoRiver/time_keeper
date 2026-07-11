@@ -32,10 +32,10 @@ func (h *Handler) Try(c echo.Context) error {
 		Role: util.UserDefauldRole,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 	if err := issueRefreshCookie(h, c, ctx, user.UserId, user.Role); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 	return c.Redirect(http.StatusSeeOther, "/registro")
 }
@@ -56,7 +56,7 @@ func (h *Handler) RegistroPage(c echo.Context) error {
 		Value:   userInfo.UserId,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	entries, err := h.ctrl.ListEntryTime(ctx, controller.ListEntryTimeParams{
@@ -64,12 +64,12 @@ func (h *Handler) RegistroPage(c echo.Context) error {
 		PageNumber: page,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	activeEntry, hasActive, err := h.ctrl.GetActiveTimer(ctx, userInfo.UserId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	groups := groupEntriesByDay(entries)
@@ -93,7 +93,7 @@ func (h *Handler) TimerStart(c echo.Context) error {
 		TimeStart: time.Now().UTC(),
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 	return c.Redirect(http.StatusSeeOther, "/registro")
 }
@@ -106,7 +106,7 @@ func (h *Handler) TimerStop(c echo.Context) error {
 
 	_, err := h.ctrl.StopTimer(ctx, userInfo.UserId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 	return c.Redirect(http.StatusSeeOther, "/registro")
 }
@@ -122,7 +122,7 @@ func (h *Handler) ResumenPage(c echo.Context) error {
 		Value:   userInfo.UserId,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	dateStart, dateEnd := parseDateRange(c)
@@ -133,7 +133,7 @@ func (h *Handler) ResumenPage(c echo.Context) error {
 		DateEnd:   dateEnd,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return h.internalError(c, err)
 	}
 
 	columns := buildDayColumns(entries, dateStart, dateEnd)
