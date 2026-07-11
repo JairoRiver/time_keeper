@@ -141,11 +141,6 @@ func (h *Handler) ResumenPage(c echo.Context) error {
 		Render(c.Request().Context(), c.Response().Writer)
 }
 
-// HelloPage renders the hello test page.
-func (h *Handler) HelloPage(c echo.Context) error {
-	return pages.Hello("World").Render(c.Request().Context(), c.Response().Writer)
-}
-
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 func groupEntriesByDay(entries []controller.EntryTimeResponse) []pages.DayGroup {

@@ -4,6 +4,7 @@ database:
 server:
   address: 0.0.0.0:8080
   secure_cookies: ${SECURE_COOKIES:-false}
+  enable_swagger: ${ENABLE_SWAGGER:-true}
 logto:
   endpoint: ${LOGTO_ENDPOINT:-http://localhost:3001}
   app_id: ${LOGTO_APP_ID}

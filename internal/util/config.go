@@ -16,6 +16,7 @@ type Config struct {
 	Server struct {
 		Address       string `yaml:"address"`
 		SecureCookies bool   `yaml:"secure_cookies"`
+		EnableSwagger bool   `yaml:"enable_swagger"`
 	} `yaml:"server"`
 	Logto struct {
 		Endpoint    string `yaml:"endpoint"`

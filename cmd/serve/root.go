@@ -50,7 +50,7 @@ func NewServerCommand() *cobra.Command {
 			querier := db.New(connPool)
 			control := controller.New(querier)
 			h := handler.New(control, idp, logger, config.Server.SecureCookies)
-			server := api.New(h, &logger)
+			server := api.New(h, &logger, config.Server.EnableSwagger)
 
 			logger.Info().Msgf("starting server at %s", config.Server.Address)
 			if err := server.Start(config.Server.Address); err != nil {

@@ -51,11 +51,12 @@ func (server *Server) setupRouter() {
 			return nil
 		},
 	}))
-	public := e.Group("api/v1")
-	private := public.Group("")
-	private.Use(server.handler.AuthMiddleware)
-	cookie := public.Group("")
-	cookie.Use(server.handler.CookieMiddleware)
+	// api/v1 namespace. Auth middleware is applied per-route (not via an
+	// empty-prefix subgroup with .Use()) so that unknown /api/v1/* paths return
+	// a 404 instead of being swallowed by a group "/*" catch-all.
+	api := e.Group("api/v1")
+	auth := server.handler.AuthMiddleware
+	cookieAuth := server.handler.CookieMiddleware
 
 	// Shared per-IP limiter for auth endpoints (reused for login in TK-11).
 	authRateLimiter := newAuthRateLimiter()
@@ -83,36 +84,40 @@ func (server *Server) setupRouter() {
 	// Pages (templ) — public
 	e.GET("/", server.handler.LandingPage)
 	e.GET("/try", server.handler.Try, authRateLimiter)
-	e.GET("/test", server.handler.HelloPage)
 
-	// Pages (templ) — protected (redirect to / if no session)
-	page := e.Group("")
-	page.Use(server.handler.PageAuthMiddleware)
-	page.GET("/registro", server.handler.RegistroPage)
-	page.POST("/registro/start", server.handler.TimerStart)
-	page.POST("/registro/stop", server.handler.TimerStop)
-	page.GET("/resumen", server.handler.ResumenPage)
+	// Pages (templ) — protected (redirect to / if no session).
+	// Middleware is applied per-route on purpose: an empty-prefix group with
+	// .Use() would register a global "/*" catch-all (Echo behaviour), turning
+	// every unknown URL into a 401/redirect instead of a 404.
+	pageAuth := server.handler.PageAuthMiddleware
+	e.GET("/registro", server.handler.RegistroPage, pageAuth)
+	e.POST("/registro/start", server.handler.TimerStart, pageAuth)
+	e.POST("/registro/stop", server.handler.TimerStop, pageAuth)
+	e.GET("/resumen", server.handler.ResumenPage, pageAuth)
 
-	public.GET("/swagger/*", echoSwagger.WrapHandler)
+	// Swagger UI is dev-only; disabled in deployment config.
+	if server.enableSwagger {
+		api.GET("/swagger/*", echoSwagger.WrapHandler)
+	}
 
 	// Auth (Logto OIDC) — web routes, no api/v1 prefix
 	e.GET("/auth/login", server.handler.Login)
 	e.GET("/auth/callback", server.handler.Callback)
 	e.GET("/auth/logout", server.handler.Logout)
-	authCookie := e.Group("")
-	authCookie.Use(server.handler.CookieMiddleware)
-	authCookie.GET("/auth/link", server.handler.LinkAccount)
+	// Per-route middleware (not an empty-prefix group) to avoid a global "/*"
+	// catch-all that would shadow the 404 handler for unknown URLs.
+	e.GET("/auth/link", server.handler.LinkAccount, server.handler.CookieMiddleware)
 
 	// User
-	public.POST("/user", server.handler.CreateUser, authRateLimiter)
-	cookie.POST("/refresh", server.handler.RefreshToken)
+	api.POST("/user", server.handler.CreateUser, authRateLimiter)
+	api.POST("/refresh", server.handler.RefreshToken, cookieAuth)
 
 	//Entry Time routers
-	private.POST("/entry-time", server.handler.CreateEntryTime)
-	private.PUT("/entry-time", server.handler.UpdateEntryTime)
-	private.GET("/entry-time/:id", server.handler.GetEntryTime)
-	private.GET("/entries-time", server.handler.ListEntryTime)
-	private.DELETE("/entry-time/:id", server.handler.DeleteEntryTime)
+	api.POST("/entry-time", server.handler.CreateEntryTime, auth)
+	api.PUT("/entry-time", server.handler.UpdateEntryTime, auth)
+	api.GET("/entry-time/:id", server.handler.GetEntryTime, auth)
+	api.GET("/entries-time", server.handler.ListEntryTime, auth)
+	api.DELETE("/entry-time/:id", server.handler.DeleteEntryTime, auth)
 
 	server.router = e
 }

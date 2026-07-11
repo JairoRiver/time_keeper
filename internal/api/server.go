@@ -10,15 +10,17 @@ import (
 
 // Server serve a HTTP request
 type Server struct {
-	handler *handler.Handler
-	logger  *zerolog.Logger
-	router  *echo.Echo
+	handler       *handler.Handler
+	logger        *zerolog.Logger
+	router        *echo.Echo
+	enableSwagger bool
 }
 
-func New(handler *handler.Handler, logger *zerolog.Logger) *Server {
+func New(handler *handler.Handler, logger *zerolog.Logger, enableSwagger bool) *Server {
 	server := Server{
-		handler: handler,
-		logger:  logger,
+		handler:       handler,
+		logger:        logger,
+		enableSwagger: enableSwagger,
 	}
 	server.setupRouter()
 	return &server
