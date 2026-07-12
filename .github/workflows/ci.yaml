@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Pinned tool versions. Keep in sync with go.mod (templ), the sqlc header in the
+# generated code, and .golangci.yml.
+env:
+  TEMPL_VERSION: v0.3.1020
+  SQLC_VERSION: "1.31.1"
+  GOLANGCI_LINT_VERSION: v2.5.0
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: time_keeper
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U root -d time_keeper"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # Matches the postgres service above; also the default in config.yaml.
+      DB_SOURCE: postgresql://root:secret@localhost:5432/time_keeper?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run migrations
+        run: go run ./main.go migrate up
+
+      - name: Test
+        run: go test ./... -cover
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+
+  generate-check:
+    name: generate-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install templ
+        run: go install github.com/a-h/templ/cmd/templ@${{ env.TEMPL_VERSION }}
+
+      - name: Install sqlc
+        uses: sqlc-dev/setup-sqlc@v4
+        with:
+          sqlc-version: ${{ env.SQLC_VERSION }}
+
+      - name: Regenerate templ + sqlc
+        run: |
+          templ generate
+          sqlc generate
+
+      - name: Fail if generated code is out of date
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Generated code is out of date. Run 'templ generate' and 'sqlc generate' and commit the result."
+            exit 1
+          fi

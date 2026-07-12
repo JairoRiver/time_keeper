@@ -40,7 +40,7 @@ func LoadConfig(filePath string) (Config, error) {
 	if err != nil {
 		return config, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	content, err := io.ReadAll(file)
 	if err != nil {

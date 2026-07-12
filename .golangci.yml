@@ -1,0 +1,18 @@
+# golangci-lint v2 configuration.
+# Pins the enabled linter set so CI results don't drift when the tool updates.
+version: "2"
+
+linters:
+  # Explicit set (not "default") so adding a linter is a deliberate, reviewed
+  # change rather than an implicit consequence of a version bump.
+  default: none
+  enable:
+    - errcheck      # unchecked errors
+    - govet         # suspicious constructs (same as `go vet`)
+    - ineffassign   # ineffectual assignments
+    - staticcheck   # static analysis + style (SA/QF/ST checks)
+    - unused        # unused code
+
+formatters:
+  enable:
+    - gofmt

@@ -68,7 +68,7 @@ func (h *Handler) CreateUser(c echo.Context) error {
 	}
 	c.SetCookie(h.sessionCookie(refreshToken))
 
-	response := parseUserResponse(user, accessToken, payload.ExpiresAt.Time.UTC())
+	response := parseUserResponse(user, accessToken, payload.ExpiresAt.UTC())
 	return c.JSON(http.StatusCreated, response)
 }
 
@@ -120,7 +120,7 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 	}
 	c.SetCookie(h.sessionCookie(refreshToken))
 
-	response := parseUserResponse(user, accessToken, payload.ExpiresAt.Time.UTC())
+	response := parseUserResponse(user, accessToken, payload.ExpiresAt.UTC())
 	return c.JSON(http.StatusCreated, response)
 
 }

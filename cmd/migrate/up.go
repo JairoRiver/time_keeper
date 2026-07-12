@@ -38,7 +38,7 @@ func NewMigrateUpCommand() *cobra.Command {
 			if err != nil {
 				log.Fatal().Err(err).Msg("Unable to connect to database")
 			}
-			defer db.Close()
+			defer func() { _ = db.Close() }()
 
 			driver, err := postgres.WithInstance(db, &postgres.Config{})
 			if err != nil {

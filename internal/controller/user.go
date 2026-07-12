@@ -78,7 +78,8 @@ type GetUserParams struct {
 
 func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserResponse, error) {
 	//get user by user ID
-	if params.GetType == util.GetUserTypeId {
+	switch params.GetType {
+	case util.GetUserTypeId:
 		//validated if the param value are an UUID
 		if id, ok := params.Value.(uuid.UUID); ok {
 			//check if the id are empty
@@ -95,7 +96,7 @@ func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserRespon
 		}
 		return UserResponse{}, fmt.Errorf("control GetUser Id type invalid Id type: %w", ErrInvalidIdType)
 
-	} else if params.GetType == util.GetUserTypeEmail {
+	case util.GetUserTypeEmail:
 		// validated if the param value are a string type
 		if email, ok := params.Value.(string); ok {
 			//check if the email are empty
@@ -112,8 +113,9 @@ func (c *Control) GetUser(ctx context.Context, params GetUserParams) (UserRespon
 		}
 		return UserResponse{}, fmt.Errorf("control GetUser email type invalid email type: %w", ErrInvalidEmailType)
 
+	default:
+		return UserResponse{}, fmt.Errorf("control GetUser invalid get param type: %w", ErrInvalidGetParamType)
 	}
-	return UserResponse{}, fmt.Errorf("control GetUser invalid get param type: %w", ErrInvalidGetParamType)
 }
 
 // update user control method
