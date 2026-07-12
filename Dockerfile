@@ -2,6 +2,9 @@
 FROM --platform=$BUILDPLATFORM golang:1.25 AS builder
 
 ARG TARGETARCH
+# Build version, injected into main.version via ldflags (see CD-06). The release
+# workflow passes the git tag; defaults to "dev" for local builds.
+ARG VERSION=dev
 
 WORKDIR /workspace
 COPY go.mod go.mod
@@ -16,7 +19,8 @@ COPY internal internal/
 COPY pkg pkg/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" go build -a -o time_keeper main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" \
+	go build -a -ldflags "-X main.version=${VERSION}" -o time_keeper main.go
 
 # Minimal runtime image
 FROM gcr.io/distroless/static:nonroot

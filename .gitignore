@@ -231,4 +231,7 @@ $RECYCLE.BIN/
 prod.env
 test.env
 
+# Production deploy artifacts — reveal infra topology (hosts, roles, DSNs); kept local.
+deploy/production/
+
 PLAN.md
