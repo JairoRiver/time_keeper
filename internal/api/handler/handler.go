@@ -17,10 +17,13 @@ type Handler struct {
 	ctrl          controller.Controller
 	log           zerolog.Logger
 	secureCookies bool
+	// db backs the /health liveness ping; version is reported by /health.
+	db      Pinger
+	version string
 }
 
-func New(ctrl controller.Controller, log zerolog.Logger, secureCookies bool) *Handler {
-	return &Handler{ctrl: ctrl, log: log, secureCookies: secureCookies}
+func New(ctrl controller.Controller, log zerolog.Logger, secureCookies bool, db Pinger, version string) *Handler {
+	return &Handler{ctrl: ctrl, log: log, secureCookies: secureCookies, db: db, version: version}
 }
 
 // sessionCookie builds the refresh-token session cookie with the configured

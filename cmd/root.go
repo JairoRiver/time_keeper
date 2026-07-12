@@ -8,19 +8,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewRootCmd() *cobra.Command {
+func NewRootCmd(version string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "timeKeeper",
+		Use:     "timeKeeper",
+		Version: version,
 	}
 
-	serve.RegisterCommands(cmd)
+	serve.RegisterCommands(cmd, version)
 	migrate.RegisterCommands(cmd)
 
 	return cmd
 }
 
-func Execute() {
-	cmd := NewRootCmd()
+func Execute(version string) {
+	cmd := NewRootCmd(version)
 
 	err := cmd.Execute()
 	if err != nil {

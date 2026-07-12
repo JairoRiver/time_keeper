@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewServerCommand() *cobra.Command {
+func NewServerCommand(version string) *cobra.Command {
 	var configFile string
 
 	cmd := &cobra.Command{
@@ -25,6 +25,8 @@ func NewServerCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			logger := zerolog.New(os.Stderr)
 			zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
+			logger.Info().Str("version", version).Msg("time keeper starting")
 
 			config, err := util.LoadConfig(configFile)
 			if err != nil {
@@ -42,7 +44,7 @@ func NewServerCommand() *cobra.Command {
 
 			querier := db.New(connPool)
 			control := controller.New(querier)
-			h := handler.New(control, logger, config.Server.SecureCookies)
+			h := handler.New(control, logger, config.Server.SecureCookies, connPool, version)
 			server := api.New(h, &logger, config.Server.EnableSwagger)
 
 			logger.Info().Msgf("starting server at %s", config.Server.Address)
@@ -56,7 +58,7 @@ func NewServerCommand() *cobra.Command {
 	return cmd
 }
 
-func RegisterCommands(parent *cobra.Command) {
-	cmd := NewServerCommand()
+func RegisterCommands(parent *cobra.Command, version string) {
+	cmd := NewServerCommand(version)
 	parent.AddCommand(cmd)
 }

@@ -28,6 +28,10 @@ func newAuthRateLimiter() echo.MiddlewareFunc {
 func (server *Server) setupRouter() {
 	e := echo.New()
 
+	// Health/version endpoint for the deploy runbook, reverse proxy and uptime
+	// checks. Registered first, public, and outside auth/rate-limit on purpose.
+	e.GET("/health", server.handler.Health)
+
 	// Serve generated Tailwind CSS and other static assets.
 	e.Static("/static", "static")
 
